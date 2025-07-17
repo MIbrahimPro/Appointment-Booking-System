@@ -1,0 +1,293 @@
+<link rel="stylesheet" href="/styles/edit.css">
+
+<div class="flex flex-col items-center min-h-screen pt-8 pb-8">
+  <div class="w-full max-w-lg lg:max-w-4xl p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">Edit Service</h1>
+    <p class="heading-font text-gray-600 text-center mb-8 text-lg sm:text-xl">
+      Modify your service offering
+    </p>
+
+    <div class="form-card w-full">
+      <form id="editServiceForm" class="space-y-6"
+            data-service-id="<%= service ? service._id : '' %>"
+            data-working-hours='<%= JSON.stringify(service ? service.working_hours : []) %>'>
+
+        <!-- Service Name -->
+        <div>
+          <label for="serviceName" class="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
+          <input type="text" id="serviceName" name="name" required
+                 value="<%= service ? service.name : '' %>"
+                 class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900">
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label for="serviceDescription" class="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <textarea id="serviceDescription" name="description" rows="4"
+                    class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900"
+          ><%= service ? service.description : '' %></textarea>
+        </div>
+
+        <!-- Custom Category Dropdown -->
+        <div>
+  <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+  <div class="relative w-full custom-select-wrapper">
+
+    <!-- This is your custom UI -->
+    <div id="selectedCategoryDisplay" class="custom-select">
+      <img id="selectedCategoryIcon" class="custom-select-icon category-icon-img" src="" alt="">
+      <span id="selectedCategoryText">Select Category</span>
+      <i class="ml-auto fas fa-chevron-down"></i>
+    </div>
+
+    <!-- The custom list -->
+    <ul id="customCategoryDropdownList" class="custom-dropdown-list">
+      <% categories.forEach(cat => { %>
+        <li class="custom-dropdown-item"
+            data-value="<%= cat._id %>"
+            data-color="<%= cat.color %>"
+            data-icon-url="<%= cat.icon %>">
+          <div class="custom-dropdown-item-icon-wrapper" style="background-color:<%= cat.color %>">
+            <img src="<%= cat.icon %>" alt="<%= cat.name %> icon" class="category-icon-img">
+          </div>
+          <span><%= cat.name %></span>
+        </li>
+      <% }) %>
+    </ul>
+
+    <!-- The real select, now fully inert -->
+    <select id="serviceCategory" name="category_id" required>
+      <option value="">Select Category</option>
+      <% categories.forEach(cat => { %>
+        <option value="<%= cat._id %>"
+          <%= service && service.category && service.category._id.toString() === cat._id.toString() ? 'selected' : '' %>
+        ><%= cat.name %></option>
+      <% }) %>
+    </select>
+
+  </div>
+</div>
+
+
+        <!-- Price & Duration -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label for="servicePrice" class="block text-sm font-medium text-gray-700 mb-1">
+              Price ($)
+            </label>
+            <input type="number" id="servicePrice" name="price" required min="0" step="0.01"
+                   value="<%= service ? service.price : '' %>"
+                   class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900">
+          </div>
+          <div>
+            <label for="serviceDuration" class="block text-sm font-medium text-gray-700 mb-1">
+              Duration (minutes)
+            </label>
+            <input type="number" id="serviceDuration" name="duration" required min="1"
+                   value="<%= service ? service.duration : '' %>"
+                   class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900">
+          </div>
+        </div>
+
+        <!-- Location & Experience -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label for="serviceLocation" class="block text-sm font-medium text-gray-700 mb-1">
+              Location
+            </label>
+            <input type="text" id="serviceLocation" name="location" placeholder="e.g., New York, NY"
+                   value="<%= service ? service.location : '' %>"
+                   class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900">
+          </div>
+          <div>
+            <label for="serviceExperience" class="block text-sm font-medium text-gray-700 mb-1">
+              Experience (years)
+            </label>
+            <input type="number" id="serviceExperience" name="experience" min="0"
+                   value="<%= service ? service.experience : 0 %>"
+                   class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900">
+          </div>
+        </div>
+
+        <!-- Working Hours -->
+        <div>
+          <h3 class="text-lg font-bold text-gray-800 mb-4">Working Hours</h3>
+          <div id="workingHoursContainer" class="space-y-4"></div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit"
+                class="w-full bg-gray-800 text-white py-3 rounded-2xl font-semibold
+                       hover:bg-gray-700 transition duration-200">
+          Update Service
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // --- displayMessage util ---
+    function displayMessage(message, type = 'info') {
+      const msg = document.createElement('div');
+      msg.className = 
+        'fixed top-5 left-1/2 -translate-x-1/2 p-4 rounded-lg shadow-xl text-white z-50 transition-all';
+      msg.style.backgroundColor = 
+        type === 'error' ? '#EF4444' :
+        type === 'success' ? '#10B981' : '#3B82F6';
+      msg.textContent = message;
+      document.body.appendChild(msg);
+      setTimeout(() => {
+        msg.remove();
+      }, 3000);
+    }
+
+    // --- Category custom dropdown ---
+    const selectEl = document.getElementById('serviceCategory');
+    const displayEl = document.getElementById('selectedCategoryDisplay');
+    const listEl    = document.getElementById('customCategoryDropdownList');
+    const txtEl     = document.getElementById('selectedCategoryText');
+    const iconEl    = document.getElementById('selectedCategoryIcon');
+
+    function updateCategoryDisplay() {
+      const opt = selectEl.options[selectEl.selectedIndex];
+      if (!opt.value) {
+        displayEl.style.backgroundColor = 'hsl(0,0%,53%)';
+        txtEl.textContent = 'Select Category';
+        iconEl.src = '';
+        return;
+      }
+      const li = listEl.querySelector(`.custom-dropdown-item[data-value="${opt.value}"]`);
+      displayEl.style.backgroundColor = li.dataset.color;
+      iconEl.src    = li.dataset.iconUrl;
+      iconEl.alt    = opt.text;
+      txtEl.textContent = opt.text;
+      listEl.querySelectorAll('.custom-dropdown-item').forEach(i => i.classList.remove('selected'));
+      li.classList.add('selected');
+    }
+
+    // init display
+    updateCategoryDisplay();
+
+    displayEl.addEventListener('click', e => {
+      e.stopPropagation();
+      listEl.classList.toggle('active');
+    });
+    listEl.addEventListener('click', e => {
+      const item = e.target.closest('.custom-dropdown-item');
+      if (!item) return;
+      selectEl.value = item.dataset.value;
+      updateCategoryDisplay();
+      listEl.classList.remove('active');
+    });
+    document.addEventListener('click', () => listEl.classList.remove('active'));
+
+    // --- Working hours render & validation ---
+    const daysOfWeek = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+    const existingWH = JSON.parse(document.getElementById('editServiceForm').dataset.workingHours);
+    const whContainer = document.getElementById('workingHoursContainer');
+
+    function renderWH() {
+      whContainer.innerHTML = '';
+      daysOfWeek.forEach(day => {
+        const dayId = day.toLowerCase();
+        const found = existingWH.find(w => w.day === day) || {};
+        const checked = Boolean(found.start_time);
+        whContainer.insertAdjacentHTML('beforeend', `
+          <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 p-3 bg-gray-50 rounded-xl border">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-${dayId}" data-day="${day}" ${checked?'checked':''}>
+              <span class="slider"></span>
+            </label>
+            <span class="font-semibold w-24">${day}</span>
+            <input type="time" id="start-${dayId}" class="time-input px-3 py-2 border rounded-lg" 
+                   value="${found.start_time||''}" ${checked?'':'disabled'}>
+            <input type="time" id="end-${dayId}" class="time-input px-3 py-2 border rounded-lg" 
+                   value="${found.end_time||''}" ${checked?'':'disabled'}>
+          </div>
+        `);
+      });
+
+      // toggles & time validation listeners
+      document.querySelectorAll('.toggle-switch input').forEach(chk => {
+        chk.addEventListener('change', e => {
+          const dayId = e.target.dataset.day.toLowerCase();
+          const st = document.getElementById(`start-${dayId}`);
+          const et = document.getElementById(`end-${dayId}`);
+          if (e.target.checked) {
+            st.disabled = et.disabled = false;
+            st.value = st.value||'09:00';
+            et.value = et.value||'17:00';
+          } else {
+            st.disabled = et.disabled = true;
+            st.value = et.value = '';
+          }
+        });
+      });
+      document.querySelectorAll('.time-input').forEach(inp => {
+        inp.addEventListener('change', e => {
+          const [_, dayId] = e.target.id.split('-');
+          const st = document.getElementById(`start-${dayId}`);
+          const et = document.getElementById(`end-${dayId}`);
+          if (st.value && et.value && et.value <= st.value) {
+            displayMessage('End time must be after start time', 'error');
+            et.value = '';
+          }
+        });
+      });
+    }
+    renderWH();
+
+    // --- Form submission ---
+    document.getElementById('editServiceForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {};
+      const fm = new FormData(form);
+      data.name        = fm.get('name').trim();
+      data.description = fm.get('description').trim();
+      data.category_id = fm.get('category_id');
+      data.price       = parseFloat(fm.get('price'));
+      data.duration    = parseInt(fm.get('duration'));
+      data.location    = fm.get('location').trim();
+      data.experience  = parseInt(fm.get('experience'));
+      data.working_hours = [];
+      daysOfWeek.forEach(day => {
+        const dayId = day.toLowerCase();
+        if (document.getElementById(`toggle-${dayId}`).checked) {
+          const st = document.getElementById(`start-${dayId}`).value;
+          const et = document.getElementById(`end-${dayId}`).value;
+          data.working_hours.push({ day, start_time: st, end_time: et });
+        }
+      });
+
+      // simple client-side sanity
+      if (!data.name) return displayMessage('Name is required', 'error');
+      if (!data.category_id) return displayMessage('Category is required', 'error');
+      if (isNaN(data.price) || data.price <= 0)
+        return displayMessage('Price must be positive', 'error');
+      if (!Number.isInteger(data.duration) || data.duration <= 0)
+        return displayMessage('Duration must be a positive integer', 'error');
+
+      // submit
+      const serviceId = form.dataset.serviceId;
+      const res = await fetch(`/api/services/${serviceId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (res.ok) {
+        displayMessage('Service updated successfully!', 'success');
+      } else {
+        (result.errors||[result.message]).forEach(msg => displayMessage(msg, 'error'));
+      }
+    });
+  })();
+</script>

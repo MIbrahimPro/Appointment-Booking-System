@@ -1,0 +1,145 @@
+ .heading-font {
+     font-family: "Dancing Script", cursive;
+ }
+
+ .main-content-card {
+     background-color: white;
+     border-radius: 1.5rem;
+     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+     padding: 2.5rem;
+     /* Increased padding for more spacious feel */
+ }
+
+ .service-card {
+     background-color: white;
+     /* Default, overridden by JS for category color */
+     color: #333;
+     border-radius: 1.5rem;
+     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+     border-width: 1px;
+     border-style: solid;
+     overflow: hidden;
+     padding: 1.5rem;
+     display: flex;
+     flex-direction: column;
+     align-items: flex-start;
+ }
+
+ .service-card:hover {
+     transform: translateY(-5px);
+     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+ }
+
+ /* Removed .service-card-image and .service-card-initials as per request */
+
+ .rating-pill,
+ .category-pill {
+     background-color: white;
+     padding: 0.25rem 0.6rem;
+     border-radius: 9999px;
+     /* fully rounded */
+     display: inline-flex;
+     align-items: center;
+     font-size: 0.875rem;
+     /* text-sm */
+     font-weight: 600;
+     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+     color: #333;
+     min-width: 50px;
+     /* Adjust as needed */
+ }
+
+ .rating-pill i {
+     color: #fcd34d;
+     /* yellow-400 */
+     margin-right: 0.25rem;
+     /* space-x-1 */
+ }
+
+ .category-pill {
+     min-width: 110px;
+     /* As per user's request */
+ }
+
+ .category-pill i {
+     /* Icon color will be set dynamically via JS style attribute */
+     margin-right: 0.25rem;
+ }
+
+ .action-button {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     padding: 0.5rem 1rem;
+     border-radius: 1rem;
+     /* rounded-xl */
+     font-weight: 500;
+     transition: all 0.2s ease;
+     cursor: pointer;
+     border: 1px solid transparent;
+ }
+
+ .action-button.edit {
+     background-color: #DBEAFE;
+     /* blue-100 */
+     color: #1E40AF;
+     /* blue-800 */
+     border-color: #93C5FD;
+     /* blue-300 */
+ }
+
+ .action-button.edit:hover {
+     background-color: #BFDBFE;
+     /* blue-200 */
+ }
+
+ .action-button.delete {
+     background-color: #FEE2E2;
+     /* red-100 */
+     color: #991B1B;
+     /* red-800 */
+     border-color: #FCA5A5;
+     /* red-300 */
+ }
+
+ .action-button.delete:hover {
+     background-color: #FECACA;
+     /* red-200 */
+ }
+
+ .action-button.requests {
+     /* Style for Manage Requests button */
+     background-color: #D1FAE5;
+     /* green-100 */
+     color: #065F46;
+     /* green-800 */
+     border-color: #A7F3D0;
+     /* green-300 */
+ }
+
+ .action-button.requests:hover {
+     background-color: #A7F3D0;
+     /* green-200 */
+ }
+
+
+
+ /* Add styles for your new category display elements */
+ .category-icon-image {
+     width: 24px;
+     height: 24px;
+     object-fit: contain;
+     margin-right: 8px;
+     background-size: 80% 80%;
+ }
+
+ .category-pill {
+     display: inline-flex;
+     align-items: center;
+     padding: 0.3rem 0.8rem;
+     border-radius: 9999px;
+     background-color: rgba(255, 255, 255, 0.8);
+     border: 1px solid rgba(0, 0, 0, 0.1);
+     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+ }

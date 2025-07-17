@@ -1,0 +1,269 @@
+<link rel="stylesheet" href="/styles/profile.css">
+
+<div class="flex items-center justify-center min-h-screen">
+    <div class="bg-white rounded-3xl shadow-lg p-8 m-4 w-full max-w-2xl mx-auto sm:p-10 lg:p-12">
+        <div id="messageDisplay" class="hidden p-3 mb-4 text-center rounded-lg text-white bg-green-500">
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">My Profile</h1>
+        <p class="dancing text-gray-600 text-center mb-8 text-lg sm:text-xl">
+            Manage your account settings
+        </p>
+
+        <div class="flex flex-col items-center mb-8">
+            <div class="profile-image-container mb-4 relative">
+                <% let initials='' ; if (user.name) { const nameParts=user.name.split(' ');
+            if (nameParts.length === 1) {
+                initials = nameParts[0].charAt(0).toUpperCase();
+            } else if (nameParts.length > 1) {
+                initials = (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+            }
+        }
+    %>
+    <img id="profileImage"
+        class="w-32 h-32 rounded-full object-cover border-4 border-gray-300 shadow-md"
+        src="<%= user.image %>"
+        onerror="this.onerror=null; this.src=' https://placehold.co/128x128/A0A0A0/FFFFFF?text=<%=initials %>';">
+
+                    <div class="profile-image-edit-icon absolute bottom-0 right-0 bg-white rounded-full p-1 shadow">
+                        <label for="imageUpload" class="cursor-pointer">
+                            <i class="fas fa-camera text-xl"></i>
+                            <input type="file" id="imageUpload" name="image" accept="image/*" class="hidden">
+                        </label>
+                    </div>
+            </div>
+            <p class="text-gray-700 font-semibold text-lg" id="profileNameDisplay">
+                <%= user.name %>
+            </p>
+            <p class="text-gray-500 text-sm" id="profileEmailDisplay">
+                <%= user.email %>
+            </p>
+            <span class="inline-block px-3 py-1 mt-2 rounded-full text-xs font-semibold bg-gray-200 text-gray-700"
+                id="profileRoleDisplay">
+                <%= user.role.charAt(0).toUpperCase() + user.role.slice(1) %>
+            </span>
+        </div>
+
+        <div class="space-y-6">
+
+            <div id="nameDisplayContainer" class="flex items-center justify-between py-2 border-b border-gray-200">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-700">Full Name</p>
+                    <span class="text-gray-900 text-lg" id="nameDisplay">
+                        <%= user.name %>
+                    </span>
+                </div>
+                <button id="editNameBtn" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            <form id="editNameForm" class="hidden space-y-4 py-2" data-field="name">
+                <label for="nameInput" class="block text-sm font-medium text-gray-700">Full Name</label>
+                <input type="text" id="nameInput" name="name"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-2xl" value="<%= user.name %>"
+                    placeholder="Enter full name" required>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" class="cancel-btn px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                    <button type="submit" class="save-btn px-4 py-2 bg-gray-800 text-white rounded-lg">Save</button>
+                </div>
+            </form>
+
+            <div id="phoneDisplayContainer" class="flex items-center justify-between py-2 border-b border-gray-200">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-700">Phone Number</p>
+                    <span class="text-gray-900 text-lg" id="phoneDisplay">
+                        <%= user.phone || 'Unset' %>
+                    </span>
+                </div>
+                <button id="editPhoneBtn" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            <form id="editPhoneForm" class="hidden space-y-4 py-2" data-field="phone">
+                <label for="phoneInput" class="block text-sm font-medium text-gray-700">Phone</label>
+                <input type="tel" id="phoneInput" name="phone"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-2xl" value="<%= user.phone %>"
+                    placeholder="555-123-4567" pattern="[0-9]{3}[- ]?[0-9]{3}[- ]?[0-9]{4}" required>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" class="cancel-btn px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                    <button type="submit" class="save-btn px-4 py-2 bg-gray-800 text-white rounded-lg">Save</button>
+                </div>
+            </form>
+
+            <div id="locationDisplayContainer" class="flex items-center justify-between py-2 border-b border-gray-200">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-700">Location</p>
+                    <span class="text-gray-900 text-lg" id="locationDisplay">
+                        <%= user.location || 'Unset' %>
+                    </span>
+                </div>
+                <button id="editLocationBtn" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </div>
+            <form id="editLocationForm" class="hidden space-y-4 py-2" data-field="location">
+                <label for="locationInput" class="block text-sm font-medium text-gray-700">Location</label>
+                <input type="text" id="locationInput" name="location"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-2xl" value="<%= user.location %>"
+                    placeholder="Enter location" required>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" class="cancel-btn px-4 py-2 bg-gray-200 rounded-lg">Cancel</button>
+                    <button type="submit" class="save-btn px-4 py-2 bg-gray-800 text-white rounded-lg">Save</button>
+                </div>
+            </form>
+
+            <!-- <div class="flex items-center justify-between py-2 border-b border-gray-200">
+            <div class="flex-1">
+                <p class="text-sm font-medium text-gray-700">Email</p>
+                <span class="text-gray-900 text-lg">
+                    <%= user.email %>
+                </span>
+            </div>
+        </div> -->
+        </div>
+
+        <div class="mt-8 space-y-4">
+            <a href="/client/services/manage"
+                class="block w-full text-center bg-gray-700 text-white py-3 rounded-2xl">Manage Your Services</a>
+            <a href="/client/user/change-password"
+                class="block w-full text-center bg-gray-700 text-white py-3 rounded-2xl">Change Password</a>
+            <a href="/client/user/logout"
+                class="block w-full text-center bg-red-600 text-white py-3 rounded-2xl">Logout</a>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // Grab our session token from a meta tag (assuming it's set somewhere, e.g., in layout/main.ejs)
+    // If not using a meta tag, you might need to pass it differently or fetch it.
+    // For demonstration, let's assume it's directly available via a global variable or similar.
+    // If you explicitly pass `session.token` to this EJS template, you can access it directly.
+    const token = '<%= typeof session !== "undefined" && typeof session.token !== "undefined" ? session.token : "" %>';
+
+    const api = axios.create({
+        baseURL: '/api/user', // Adjust this if your API base URL is different
+        headers: { Authorization: `Bearer ${token}` }
+    });
+
+    // Utility for flash messages (simple alert for now)
+    function flash(msg, isError = false) {
+        alert(msg); // You can replace this with a more sophisticated UI notification system
+    }
+
+    // Toggle display vs edit forms
+    function toggle(field) {
+        // Find the display container for the field (e.g., 'nameDisplayContainer')
+        document.getElementById(`${field}DisplayContainer`).classList.toggle('hidden');
+        // Find the edit form for the field (e.g., 'editNameForm')
+        document.getElementById(`edit${field.charAt(0).toUpperCase() + field.slice(1)}Form`).classList.toggle('hidden');
+    }
+
+    // Attach click handlers to "Edit" buttons
+    ['Name', 'Phone', 'Location'].forEach(fld => {
+        document.getElementById(`edit${fld}Btn`).onclick = () => toggle(fld.toLowerCase());
+    });
+
+    // Attach click handlers to "Cancel" buttons
+    document.querySelectorAll('.cancel-btn').forEach(button => {
+        button.onclick = e => {
+            e.preventDefault(); // Prevent form submission
+            const form = e.target.closest('form');
+            if (form) {
+                toggle(form.dataset.field); // Use the data-field attribute to identify which field to toggle
+            }
+        };
+    });
+
+    // Handle inline edits via AJAX (using Axios)
+    ['name', 'phone', 'location'].forEach(field => {
+        const form = document.getElementById(`edit${field.charAt(0).toUpperCase() + field.slice(1)}Form`);
+        if (form) { // Ensure the form exists
+            form.onsubmit = async e => {
+                e.preventDefault(); // Prevent default form submission (page reload)
+
+                const inputElement = form.elements[field]; // Get the input element by its name
+                const val = inputElement ? inputElement.value : ''; // Get its value
+
+                try {
+                    // Send PUT request to your backend API
+                    const response = await api.put('/', { [field]: val });
+
+                    // Update the displayed value on the page
+                    document.getElementById(`${field}Display`).textContent = val;
+                    // Update the profile name display if 'name' was changed
+                    if (field === 'name') {
+                        document.getElementById('profileNameDisplay').textContent = val;
+
+                        // Re-calculate initials for placeholder if the name changes
+                        let newInitials = '';
+                        if (val) {
+                            const nameParts = val.split(' ');
+                            if (nameParts.length === 1) {
+                                newInitials = nameParts[0].charAt(0).toUpperCase();
+                            } else if (nameParts.length > 1) {
+                                newInitials = (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                            }
+                        }
+                        const profileImage = document.getElementById('profileImage');
+                        // Only update if current image is the placeholder (or always if you want)
+                        if (profileImage.src.includes('placehold.co')) {
+                            profileImage.src = `https://placehold.co/128x128/A0A0A0/FFFFFF?text=${newInitials}`;
+                        }
+                    }
+
+                    flash(`${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully!`);
+                    toggle(field); // Hide the form and show the display
+                } catch (err) {
+                    console.error(`Error updating ${field}:`, err);
+                    // Provide a more specific error message if available from the backend
+                    flash(err.response?.data?.message || `Failed to update ${field}. Please try again.`, true);
+                }
+            };
+        }
+    });
+
+    // Image upload (Ajax with Axios)
+    document.getElementById('imageUpload').onchange = async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file); // 'image' should match the field name your backend expects
+
+        try {
+            // Send PUT request to your image upload endpoint
+            const { data } = await api.put('/image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' } // Important for file uploads
+            });
+
+            // Update the profile image source
+            document.getElementById('profileImage').src = data.image; // Assuming your backend sends back the new image URL
+
+            flash('Profile image updated successfully!');
+        } catch (err) {
+            console.error('Error uploading image:', err);
+            flash(err.response?.data?.message || 'Failed to upload image. Please try again.', true);
+        }
+    };
+
+    window.onload = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('msg');
+        const messageDisplay = document.getElementById('messageDisplay');
+
+        if (message === 'password_changed') {
+            messageDisplay.textContent = 'Your password has been changed successfully!';
+            messageDisplay.classList.remove('hidden');
+            messageDisplay.classList.add('bg-green-500'); // Or whatever success color you prefer
+            // Optionally, remove the query parameter from the URL after displaying
+            // history.replaceState({}, document.title, window.location.pathname);
+        } else if (message) {
+            // Handle other potential messages, e.g., error messages
+            messageDisplay.textContent = 'An unexpected message occurred: ' + message;
+            messageDisplay.classList.remove('hidden');
+            messageDisplay.classList.add('bg-blue-500'); // Example for other messages
+            // history.replaceState({}, document.title, window.location.pathname);
+        }
+    };
+</script>

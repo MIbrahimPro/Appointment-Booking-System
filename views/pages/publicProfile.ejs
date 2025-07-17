@@ -1,0 +1,122 @@
+<link rel="stylesheet" href="/styles/publicProfile.css">
+
+<section class="flex flex-col items-center min-h-screen pt-8 pb-8">
+    <div class="w-full max-w-lg lg:max-w-4xl p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">Public Profile</h1>
+        <p class="heading-font text-gray-600 text-center mb-8 text-lg sm:text-xl">
+            Information about <%= provider.name %>
+        </p>
+
+        <div
+            class="bg-white rounded-3xl shadow-lg p-6 w-full relative mb-8 flex flex-col sm:flex-row items-center sm:items-start justify-center text-center sm:text-left">
+            <!-- <img id="profileImage" src="<%= provider.image %>" alt="<%= provider.name %>"
+                class="profile-image mb-6 sm:mb-0 sm:mr-8 rounded-full w-36 h-36 object-cover"> -->
+
+            <% if (provider.image) { %>
+                <img id="profileImage" src="<%= provider.image %>" alt="<%= provider.name %>"
+                    class="profile-image mb-6 sm:mb-0 sm:mr-8 rounded-full w-36 h-36 object-cover">
+                <% } else { %>
+                    <div class="no-underline hover:underline cursor-pointer rounded-3xl bg-gray-200 w-36 h-36 flex items-center justify-center text-3xl font-bold text-gray-600 shadow-lg border-4 border-white mb-6 sm:mb-0 sm:mr-8"
+                        onclick="location.href='/client/publicProfile/<%= provider._id %>/profile'">
+                        <%= provider.name.split(' ').map(w=>w[0]).join('').toUpperCase() %>
+    </div>
+<% } %>
+
+
+            <div class="flex flex-col items-center sm:items-start flex-grow">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2" id="profileName">
+                    <%= provider.name %>
+                </h2>
+
+                <div class="flex items-center mt-2 space-x-2 text-gray-700" id="profileLocation">
+                    <i class="fas fa-map-marker-alt text-lg"></i>
+                    <span>
+                        <%= provider.location %>
+                    </span>
+                </div>
+                <div class="flex items-center mt-2 space-x-2 text-gray-700" id="profileExperience">
+                    <i class="fas fa-briefcase text-lg"></i>
+                    <span>
+                        <%= services.length %> service<%= services.length===1?'':' s'%> offered
+                            </span>
+                    </div>
+                    <div class="flex items-center mt-2 space-x-2 text-gray-700" id="profileEmail">
+                        <i class="fas fa-envelope text-lg"></i>
+                        <span>
+                            <%= provider.email %>
+                        </span>
+                    </div>
+        </div>
+    </div>
+
+    <div class="w-full">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 text-center mb-6">Services Offered</h2>
+        <div id="servicesProvidedGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <% if (services.length===0) { %>
+                <p class="text-center text-gray-600 col-span-full">No services listed by this provider yet.</p>
+                <% } else { %>
+                    <% services.forEach(s=> { %>
+                        <div class="service-card relative rounded-2xl border p-4 shadow"
+                            style="background-color: <%= s.category_id.color.replace(/hsl\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*\)/, 'hsl($1, $2%, 95%)') %>; border-color:<%= s.category_id.color %>;">
+
+                            <div
+                                class="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center text-sm shadow">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>
+                                    <%= s.avgRating ?? '—' %>
+                                </span>
+                            </div>
+
+                            <!-- <% if (s.image) { %>
+                                    <img src="<%= s.image %>" alt="<%= s.name %>"
+                                        class="service-card-image w-full h-32 object-cover rounded-lg mb-4">
+                                    <% } else { %>
+                                        <div
+                                            class="service-card-initials w-full h-32 flex items-center justify-center bg-gray-200 text-2xl font-bold text-gray-600 rounded-lg mb-4">
+                                            <%= s.name.split(' ').map(w=>w[0]).join('').toUpperCase() %>
+                                        </div>
+                                    <% } %> -->
+
+                            <h3 class="font-bold text-xl text-gray-900 mt-8">
+                                <%= s.name %>
+                            </h3>
+                            <p class="text-sm text-gray-600 mb-2">
+                                <%= s.description %>
+                            </p>
+                            <p class="text-2xl font-bold text-gray-800">$<%= s.price %>
+                                    <span class="text-sm font-normal text-gray-600">/ session</span>
+                            </p>
+                            <p class="text-sm text-gray-500 mt-1">
+                                <%= s.location || ' Location Unset' %>
+                            </p>
+
+                            <div class="service-card-buttons flex justify-between items-center w-full mt-4">
+                                <button class="favorite-btn" data-service-id="<%= s._id %>"
+                                    onclick="toggleFavorite('<%= s._id %>')" aria-label="Toggle favorite">
+                                    <i
+                                        class="<%= s.isFavorite ? 'fas fa-heart text-red-500' : 'far fa-heart text-gray-400' %>"></i>
+                                </button>
+                                <button
+                                    class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-gray-700 shadow"
+                                    onclick="location.href='/client/services/<%= s._id %>'" aria-label="View details">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } %>
+        </div>
+    </div>
+    </div>
+</section>
+
+<script>
+    // Expose dummy toggleFavorite for favorites POST logic
+    function toggleFavorite(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/client/services/favorite/${id}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>

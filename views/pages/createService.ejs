@@ -1,0 +1,436 @@
+<link rel="stylesheet" href="/styles/create.css">
+
+
+
+<div class="flex flex-col items-center min-h-screen pt-8 pb-8">
+
+    <!-- Main Content Area -->
+    <div class="w-full max-w-lg lg:max-w-4xl p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">Create New Service</h1>
+        <p class="heading-font text-gray-600 text-center mb-8 text-lg sm:text-xl">
+            Define your service offerings
+        </p>
+
+        <!-- Service Creation Form -->
+        <div class="form-card w-full">
+            <form id="createServiceForm" class="space-y-6">
+                <!-- Service Name -->
+                <div>
+                    <label for="serviceName" class="block text-sm font-medium text-gray-700 mb-1">Service Name</label>
+                    <input type="text" id="serviceName" name="name" required
+                        class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="serviceDescription"
+                        class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="serviceDescription" name="description" rows="4"
+                        class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400"></textarea>
+                </div>
+
+                <!-- Category Dropdown -->
+                <div>
+    <label for="serviceCategory" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+    <div class="relative w-full custom-select-wrapper">
+        <div id="selectedCategoryDisplay" class="custom-select">
+            <img id="selectedCategoryIcon" class="custom-select-icon category-icon-img" src="" alt="Category Icon">
+            <span id="selectedCategoryText">Select Category</span>
+            <i class="ml-auto fas fa-chevron-down"></i>
+        </div>
+        <ul id="customCategoryDropdownList" class="custom-dropdown-list">
+            </ul>
+        <select id="serviceCategory" name="category_id"
+            class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer hidden" required>
+            </select>
+    </div>
+</div>
+
+                <!-- Price and Duration -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label for="servicePrice" class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                        <input type="number" id="servicePrice" name="price" required min="0" step="0.01"
+                            class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400">
+                    </div>
+                    <div>
+                        <label for="serviceDuration" class="block text-sm font-medium text-gray-700 mb-1">Duration
+                            (minutes)</label>
+                        <input type="number" id="serviceDuration" name="duration" required min="1"
+                            class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400">
+                    </div>
+                </div>
+
+                <!-- Location and Experience -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label for="serviceLocation"
+                            class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                        <input type="text" id="serviceLocation" name="location"
+                            class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400"
+                            placeholder="e.g., New York, NY">
+                    </div>
+                    <div>
+                        <label for="serviceExperience" class="block text-sm font-medium text-gray-700 mb-1">Experience
+                            (years)</label>
+                        <input type="number" id="serviceExperience" name="experience" min="0" value="0"
+                            class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400">
+                    </div>
+                </div>
+
+                <!-- Working Hours -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Working Hours</h3>
+                    <div id="workingHoursContainer" class="space-y-4">
+                        <!-- Days and time pickers will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-semibold
+                               hover:bg-gray-700 transition-colors duration-200 ease-in-out
+                               focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2">
+                    Create Service
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+
+  <script>
+    // --- API Endpoints ---
+    const API_BASE_URL = ''; // Adjust if your API is on a different domain/path
+    const CATEGORIES_API_URL = `${API_BASE_URL}/api/categories`;
+    const SERVICES_API_URL = `${API_BASE_URL}/api/services`;
+
+    // Global variable to store fetched categories
+    let fetchedCategories = [];
+
+    // Helper to get a very light shade of a given HSL color for consistent dropdown styling
+    function getLightShade(hslColor, lightness = 95) {
+        const parts = hslColor.match(/\d+/g).map(Number);
+        const h = parts[0];
+        const s = parts[1];
+        return `hsl(${h}, ${s}%, ${lightness}%)`;
+    }
+
+    // --- Custom Category Dropdown Logic ---
+    const serviceCategorySelect = document.getElementById('serviceCategory');
+    const selectedCategoryDisplay = document.getElementById('selectedCategoryDisplay');
+    const selectedCategoryIcon = document.getElementById('selectedCategoryIcon'); // This will now be an <img> container
+    const selectedCategoryText = document.getElementById('selectedCategoryText');
+    const customCategoryDropdownList = document.getElementById('customCategoryDropdownList');
+
+    async function fetchAndPopulateCategories() {
+        try {
+            const response = await fetch(CATEGORIES_API_URL);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            fetchedCategories = data.categories; // Store fetched categories
+
+            // Clear existing options
+            serviceCategorySelect.innerHTML = '';
+            customCategoryDropdownList.innerHTML = '';
+
+            // Add a default "Select Category" option (not pre-selected)
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Select Category';
+            defaultOption.dataset.color = 'hsl(0, 0%, 53%)'; // Default grey
+            defaultOption.dataset.iconUrl = ''; // No icon for default
+            serviceCategorySelect.appendChild(defaultOption);
+
+            // Populate the dropdowns with fetched categories
+            fetchedCategories.forEach((category, index) => {
+                // Populate the hidden native select for form submission
+                const option = document.createElement('option');
+                option.value = category._id; // Use _id as value from API
+                option.textContent = category.name;
+                option.dataset.color = category.color;
+                option.dataset.iconUrl = category.icon; // Store full icon URL
+                serviceCategorySelect.appendChild(option);
+
+                // Populate the custom dropdown list
+                const li = document.createElement('li');
+                li.className = 'custom-dropdown-item';
+                li.dataset.value = category._id; // Use _id as value
+                li.innerHTML = `
+                    <div class="custom-dropdown-item-icon-wrapper" style="background-color: ${category.color};">
+                        <img src="${category.icon}" alt="${category.name} icon" class="category-icon-img">
+                    </div>
+                    <span class="font-medium">${category.name}</span>
+                `;
+                customCategoryDropdownList.appendChild(li);
+            });
+
+            // Pre-select the first actual category if available
+            if (fetchedCategories.length > 0) {
+                serviceCategorySelect.value = fetchedCategories[0]._id;
+            }
+            
+            updateSelectedCategoryDisplay(); // Update display after populating and potentially pre-selecting
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            displayMessage('Failed to load categories. Please try again.', 'error');
+        }
+    }
+
+    function updateSelectedCategoryDisplay() {
+        const selectedOption = serviceCategorySelect.options[serviceCategorySelect.selectedIndex];
+        if (selectedOption && selectedOption.value !== '') {
+            const color = selectedOption.dataset.color;
+            const iconUrl = selectedOption.dataset.iconUrl;
+            const name = selectedOption.textContent;
+
+            selectedCategoryDisplay.style.backgroundColor = color;
+            selectedCategoryDisplay.innerHTML = `
+                <img src="${iconUrl}" alt="${name} icon" class="custom-select-icon category-icon-img">
+                <span id="selectedCategoryText" style="color: white;">${name}</span>
+                <i class="ml-auto fas fa-chevron-down"></i>
+            `;
+            // Re-assign selectedCategoryIcon and selectedCategoryText after innerHTML update
+            // This is crucial if you later need to access them directly.
+            // For this specific use case, it's not strictly necessary as we update innerHTML directly.
+            // selectedCategoryIcon = document.querySelector('#selectedCategoryDisplay .custom-select-icon');
+            // selectedCategoryText = document.querySelector('#selectedCategoryDisplay #selectedCategoryText');
+
+            customCategoryDropdownList.querySelectorAll('.custom-dropdown-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.value === selectedOption.value) {
+                    item.classList.add('selected');
+                }
+            });
+        } else {
+            // Handle initial state or when "Select Category" is chosen
+            selectedCategoryDisplay.style.backgroundColor = 'hsl(0, 0%, 53%)'; // Default grey
+            selectedCategoryDisplay.innerHTML = `
+                <img src="" alt="Select Category Icon" class="custom-select-icon category-icon-img">
+                <span id="selectedCategoryText" style="color: white;">Select Category</span>
+                <i class="ml-auto fas fa-chevron-down"></i>
+            `;
+        }
+    }
+
+    selectedCategoryDisplay.addEventListener('click', (event) => {
+        event.stopPropagation();
+        customCategoryDropdownList.classList.toggle('active');
+    });
+
+    customCategoryDropdownList.addEventListener('click', (event) => {
+        const clickedItem = event.target.closest('.custom-dropdown-item');
+        if (clickedItem) {
+            const newValue = clickedItem.dataset.value;
+            serviceCategorySelect.value = newValue; // Update hidden select
+            updateSelectedCategoryDisplay(); // Update visual display
+            customCategoryDropdownList.classList.remove('active'); // Close dropdown
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!selectedCategoryDisplay.contains(event.target) && !customCategoryDropdownList.contains(event.target)) {
+            customCategoryDropdownList.classList.remove('active');
+        }
+    });
+
+    // --- Working Hours Logic ---
+    const workingHoursContainer = document.getElementById('workingHoursContainer');
+    const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    function renderWorkingHours() {
+        workingHoursContainer.innerHTML = '';
+        daysOfWeek.forEach(day => {
+            const dayId = day.toLowerCase();
+            const dayHtml = `
+                <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="flex items-center space-x-3 w-full sm:w-auto flex-shrink-0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-${dayId}" class="day-toggle" data-day="${dayId}">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="font-semibold text-gray-800 text-lg">${day}</span>
+                    </div>
+                    <div class="flex items-center space-x-3 w-full sm:flex-grow">
+                        <label for="start-${dayId}" class="text-sm text-gray-700 hidden sm:block">From:</label>
+                        <input type="time" id="start-${dayId}" name="${dayId}_start" class="input-field time-input w-full sm:w-auto flex-grow px-3 py-2 border border-gray-300 rounded-lg text-gray-900" disabled>
+                        <label for="end-${dayId}" class="text-sm text-gray-700 hidden sm:block">To:</label>
+                        <input type="time" id="end-${dayId}" name="${dayId}_end" class="input-field time-input w-full sm:w-auto flex-grow px-3 py-2 border border-gray-300 rounded-lg text-gray-900" disabled>
+                    </div>
+                </div>
+            `;
+            workingHoursContainer.insertAdjacentHTML('beforeend', dayHtml);
+        });
+
+        // Add event listeners for toggles and time inputs
+        document.querySelectorAll('.day-toggle').forEach(toggle => {
+            toggle.addEventListener('change', (event) => {
+                const dayId = event.target.dataset.day;
+                const startTimeInput = document.getElementById(`start-${dayId}`);
+                const endTimeInput = document.getElementById(`end-${dayId}`);
+
+                startTimeInput.disabled = !event.target.checked;
+                endTimeInput.disabled = !event.target.checked;
+
+                // Clear values when disabled
+                if (!event.target.checked) {
+                    startTimeInput.value = '';
+                    endTimeInput.value = '';
+                } else {
+                    // Set default times when enabled for convenience, can be changed by user
+                    startTimeInput.value = '09:00';
+                    endTimeInput.value = '17:00';
+                }
+            });
+        });
+
+        // Add change listeners for time inputs for validation
+        document.querySelectorAll('.time-input').forEach(input => {
+            input.addEventListener('change', (event) => {
+                const dayId = event.target.id.split('-')[1];
+                const startTimeInput = document.getElementById(`start-${dayId}`);
+                const endTimeInput = document.getElementById(`end-${dayId}`);
+
+                // Only validate if both times are filled
+                if (startTimeInput.value && endTimeInput.value) {
+                    if (endTimeInput.value <= startTimeInput.value) {
+                        displayMessage("End time must be after start time.", "error");
+                        // Optionally reset or highlight the invalid input
+                        endTimeInput.value = ''; // Clear end time if invalid
+                    }
+                }
+            });
+        });
+    }
+
+    // --- Form Submission Logic ---
+    const createServiceForm = document.getElementById('createServiceForm');
+
+    createServiceForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(createServiceForm);
+        const serviceData = {};
+        let formIsValid = true;
+
+        // Collect basic service details
+        serviceData.name = formData.get('name')?.trim();
+        if (!serviceData.name) { displayMessage("Service Name is required.", "error"); formIsValid = false; }
+
+        serviceData.description = formData.get('description')?.trim();
+
+        serviceData.category_id = formData.get('category_id');
+        if (!serviceData.category_id) {
+            displayMessage("Category is required.", "error");
+            formIsValid = false;
+        }
+
+        serviceData.price = parseFloat(formData.get('price'));
+        if (isNaN(serviceData.price) || serviceData.price <= 0) { displayMessage("Valid Price is required (must be positive).", "error"); formIsValid = false; }
+
+        serviceData.duration = parseInt(formData.get('duration'));
+        if (isNaN(serviceData.duration) || serviceData.duration <= 0) { displayMessage("Valid Duration (in minutes) is required (must be positive).", "error"); formIsValid = false; }
+
+        serviceData.location = formData.get('location')?.trim();
+        serviceData.experience = parseInt(formData.get('experience'));
+        if (isNaN(serviceData.experience) || serviceData.experience < 0) { displayMessage("Valid Experience (in years) is required (non-negative).", "error"); formIsValid = false; }
+
+
+        // Collect working hours with validation
+        serviceData.working_hours = [];
+        daysOfWeek.forEach(day => {
+            const dayId = day.toLowerCase();
+            const toggle = document.getElementById(`toggle-${dayId}`);
+            if (toggle && toggle.checked) {
+                const startTime = document.getElementById(`start-${dayId}`).value;
+                const endTime = document.getElementById(`end-${dayId}`).value;
+
+                if (!startTime || !endTime) {
+                    displayMessage(`Please enter both start and end times for ${day}.`, "error");
+                    formIsValid = false;
+                } else if (endTime <= startTime) {
+                    displayMessage(`For ${day}, end time must be after start time.`, "error");
+                    formIsValid = false;
+                } else {
+                    serviceData.working_hours.push({
+                        day: day,
+                        start_time: startTime,
+                        end_time: endTime
+                    });
+                }
+            }
+        });
+
+        if (!formIsValid) {
+            return; // Stop form submission if any validation fails
+        }
+
+        console.log("Service Data to be created:", serviceData);
+
+        try {
+            // Replace with actual authentication token
+            const authToken = "YOUR_AUTH_TOKEN"; // You'll need a mechanism to get this (e.g., from local storage after login)
+
+            const response = await fetch(SERVICES_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}` // Include auth token
+                },
+                body: JSON.stringify(serviceData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log('Service created:', result.service);
+                displayMessage('Service created successfully!', 'success');
+                // Optionally redirect or clear the form
+                createServiceForm.reset(); // Clear the form fields
+                if (fetchedCategories.length > 0) { // Re-select the first category after reset
+                    serviceCategorySelect.value = fetchedCategories[0]._id;
+                } else {
+                    serviceCategorySelect.value = ''; // Or set to default if no categories
+                }
+                updateSelectedCategoryDisplay(); // Reset category display
+                renderWorkingHours(); // Re-render working hours to reset toggles/times
+                // window.location.href = '/manage-services-page.html'; // Example redirect
+            } else {
+                console.error('Error creating service:', result.errors || result.message);
+                if (result.errors && Array.isArray(result.errors)) {
+                    result.errors.forEach(err => displayMessage(err, 'error'));
+                } else {
+                    displayMessage(result.message || 'Failed to create service.', 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Network error or unexpected issue:', error);
+            displayMessage('Failed to connect to the server. Please check your network.', 'error');
+        }
+    });
+
+    // --- Utility for Messages ---
+    function displayMessage(message, type = "info") {
+        const messageContainer = document.createElement('div');
+        messageContainer.className = `fixed top-5 left-1/2 -translate-x-1/2 p-4 rounded-lg shadow-xl text-white z-50 transition-all duration-300 transform scale-100 opacity-100`;
+        messageContainer.style.backgroundColor = type === "error" ? '#EF4444' : (type === "success" ? '#10B981' : '#3B82F6');
+        messageContainer.textContent = message;
+
+        document.body.appendChild(messageContainer);
+
+        setTimeout(() => {
+            messageContainer.classList.remove('scale-100', 'opacity-100');
+            messageContainer.classList.add('scale-95', 'opacity-0');
+            messageContainer.addEventListener('transitionend', () => messageContainer.remove());
+        }, 3000);
+    }
+
+    // Initial render on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchAndPopulateCategories(); // Fetch and populate categories dynamically
+        renderWorkingHours();
+    });
+</script>

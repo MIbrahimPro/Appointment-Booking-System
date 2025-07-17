@@ -1,0 +1,322 @@
+<link rel="stylesheet" href="/styles/services.css">
+<script>
+    const BASE = '<%= baseUrl %>';   // e.g. '/client/services'
+</script>
+
+<div class="flex flex-col items-center min-h-screen">
+    <!-- Main Content Area -->
+    <div class="w-full max-w-4xl p-4 sm:p-6 lg:p-8 flex-grow">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">Find Services</h1>
+        <p class="heading-font text-gray-600 text-center mb-8 text-lg sm:text-xl">
+            Find the perfect service for your needs
+        </p>
+
+        <!-- Filters Section -->
+        <div class="flex flex-col sm:flex-row items-center justify-between mb-8 space-y-4 sm:space-y-0 sm:space-x-4">
+            <!-- Category Filter -->
+            <div class="relative w-lg sm:w-1/4 md:w-1/5 custom-select-wrapper">
+                <div id="selectedCategoryDisplay" class="custom-select" style="background-color:<%= filters.category==='all'
+    ? '#888'
+    : (categories.find(c=>c._id==filters.category)?.color || '#888') %>;">
+
+                    <% if (filters.category==='all' ) { %>
+
+                        <i id="selectedCategoryIcon" class="custom-select-icon fas fa-grip-horizontal"></i>
+
+                        <% } else { const selectedCat=categories.find(c=> c._id == filters.category);
+                            if (selectedCat && selectedCat.icon &&
+                            /\.(png|jpg|jpeg|gif|bmp|webp|svg)$/i.test(selectedCat.icon)) { %>
+                            <!-- <div class="custom-selected-item-icon-wrapper"> -->
+                            <img id="selectedCategoryIcon" class="custom-select-icon category-img-icon"
+                                src="<%= selectedCat.icon %>" alt="<%= selectedCat.name %>" />
+                            <!-- </div> -->
+
+                            <% } else if (selectedCat) { %>
+                                <i id="selectedCategoryIcon" class="custom-select-icon <%= selectedCat.icon %>"></i>
+                                <% } %>
+                                    <% } %>
+                                        <!-- <span id="selectedCategoryText">
+                                            <%= filters.category==='all' ? 'All Categories' : categories.find(c=> c._id
+                                                ==
+                                                filters.category).name %>
+                                        </span> -->
+                                        <span id="selectedCategoryText">
+                                            <%= filters.category==='all' ? 'All Categories' : (categories.find(c=>
+                                                String(c._id) === String(filters.category))?.name || 'All Categories')
+                                                %>
+                                        </span>
+                                        <i class="ml-auto fas fa-chevron-down"></i>
+                </div>
+                <ul id="customCategoryDropdownList" class="custom-dropdown-list">
+                    <li class="custom-dropdown-item <%= filters.category === 'all' ? 'selected' : '' %>"
+                        data-value="all" data-color="#888" data-icon="fas fa-grip-horizontal"
+                        data-name="All Categories">
+                        <div class="custom-dropdown-item-icon-wrapper" style="background-color:#888;">
+                            <i class="fas fa-grip-horizontal text-lg"></i>
+                        </div>
+                        <span>All Categories</span>
+                    </li>
+                    <% categories.forEach(cat=> { %>
+                        <li class="custom-dropdown-item <%= String(filters.category) === String(cat._id) ? 'selected' : '' %>"
+                            data-value="<%= cat._id %>" data-color="<%= cat.color %>" data-icon="<%= cat.icon %>"
+                            data-name="<%= cat.name %>">
+                            <div class="custom-dropdown-item-icon-wrapper" style="background-color:<%= cat.color %>">
+                                <% if (cat.icon && /\.(png|jpg|jpeg|gif|bmp|webp|svg)$/i.test(cat.icon)) { %>
+                                    <img class="category-img-icon" src="<%= cat.icon %>" alt="<%= cat.name %>" />
+                                    <% } else { %>
+                                        <i class="<%= cat.icon %> text-lg"></i>
+                                        <% } %>
+                            </div>
+                            <span>
+                                <%= cat.name %>
+                            </span>
+                        </li>
+                        <% }) %>
+                </ul>
+                <select id="categoryFilter" class="hidden">
+                    <option value="all" <%=filters.category==='all' ? 'selected' : '' %>>All Categories</option>
+                    <% categories.forEach(cat=> { %>
+                        <option value="<%= cat._id %>" <%=filters.category==cat._id ? 'selected' : '' %>>
+                            <%= cat.name %>
+                        </option>
+                        <% }) %>
+                </select>
+            </div>
+
+
+
+            <!-- Location Filter -->
+            <div class="w-full sm:w-1/2 md:w-1/3 flex items-center space-x-2">
+                <button id="mobileLocationBtn"
+                    class="sm:hidden w-full flex items-center justify-center bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-2xl shadow-sm hover:bg-gray-50">
+                    <i class="fas fa-map-marker-alt mr-2"></i>
+                    <span id="mobileLocationText">
+                        <%= filters.location ? ('Location: ' + filters.location) : ' Set Location (Unset)' %>
+                    </span>
+                </button>
+                <div id="desktopLocationInput" class="hidden sm:block relative">
+                    <input type="text" id="locationInput" value="<%= filters.location %>"
+                        placeholder="Enter Location (e.g., New York)"
+                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-400">
+                    <i class="fas fa-map-marker-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+
+                <!-- Favorites filter-->
+                <% if (user) { %>
+                    <button id="filterFavoritesBtn"
+                        class="favorite-filter-btn<%= (filters.favorites === true || filters.favorites === 'true') ? ' active' : '' %>"
+                        title="Show only favorites">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    <% } %>
+
+            </div>
+        </div>
+
+        <% if (filters.search && filters.search.trim() !=='' ) { %>
+            <div class="mb-4 text-center text-gray-700">
+                Showing results for "<span class="font-semibold">
+                    <%= filters.search %>
+                </span>"
+            </div>
+            <% } %>
+
+                <!-- Services Grid -->
+                <div id="servicesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+                    <% if (services.length===0) { %>
+                        <p class="text-center text-gray-600 col-span-full">No services found for your selection.</p>
+                        <% } else { %>
+                            <% services.forEach(s=> {
+                                const initials = s.username.split(' ').map(w => w[0]).join('').toUpperCase();
+                                %>
+                                <div class="service-card relative"
+                                    style="background-color:<%= s.cardBgColor %>; border-color:<%= s.category.color %>;">
+                                    <!-- Rating pill -->
+                                    <div
+                                        class="absolute top-2 right-2 bg-white px-2 py-1 rounded-full flex items-center text-sm shadow">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span>
+                                            <%= s.avgRating?.toFixed(1) || '—' %>
+                                        </span>
+                                    </div>
+                                    <!-- <div
+                                        class="absolute top-12 right-2 bg-white px-2 py-1 rounded-full flex items-center text-sm shadow">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        <span>
+                                            Category
+                                        </span>
+                                    </div> -->
+                                    <div class="absolute top-11 right-2 bg-white px-2 py-1 rounded-full flex items-center text-sm shadow"
+                                        style="min-width: 110px;">
+                                        <% if (s.category.icon &&
+                                            /\.(png|jpg|jpeg|gif|bmp|webp|svg)$/i.test(s.category.icon)) { %>
+                                            <img src="<%= s.category.icon %>" alt="<%= s.category.name %> icon"
+                                                class="w-5 h-5 mr-2 object-contain rounded-full bg-gray-300"
+                                                style="background: <%= s.category.color %>; padding: 2px;" />
+                                            <% } else { %>
+                                                <i class="<%= s.category.icon %> text-gray-500 mr-2"></i>
+                                                <% } %>
+                                                    <span class="font-semibold text-gray-700">
+                                                        <%= s.category.name %>
+                                                    </span>
+                                    </div>
+                                    <!-- Image or initials placeholder -->
+                                    <% if (s.image) { %>
+                                        <img src="<%= s.image %>" alt="<%= s.name %>" class="service-card-image">
+                                        <% } else { %>
+                                            <div
+                                                class="service-card-image flex items-center justify-center bg-gray-200 text-gray-600 font-bold">
+                                                <%= initials %>
+                                            </div>
+                                            <% } %>
+                                                <p
+                                                    class="flex justify-center items-baseline italic font-semibold text-m text-gray-600 mt-1">
+                                                    <i class="fas fa-user mr-1 text-xs"></i>
+                                                    <%= s.username %>
+                                                </p>
+                                                <h3 class="font-bold text-xl text-gray-900 mt-2">
+                                                    <%= s.name %>
+                                                </h3>
+                                                <p class="text-sm text-gray-600">
+                                                    <%= s.details %>
+                                                </p>
+                                                <p class="text-2xl font-bold text-gray-800 mt-2">
+                                                    $<%= s.price %> <span class="text-sm font-normal text-gray-600">/
+                                                            Per session</span>
+                                                </p>
+                                                <p class="text-sm text-gray-500 mt-1 mb-4">
+                                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                                    <%= s.location %>
+                                                </p>
+                                                <div
+                                                    class="service-card-buttons flex justify-between items-center w-full mt-4">
+                                                    <button class="favorite-btn" data-service-id="<%= s._id %>"
+                                                        onclick="toggleFavorite('<%= s._id %>')"
+                                                        aria-label="Toggle favorite">
+                                                        <i
+                                                            class="<%= s.isFavorite ? 'fas fa-heart text-red-500' : 'far fa-heart text-gray-400' %>"></i>
+                                                    </button>
+                                                    <button
+                                                        class="w-10 h-10 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-gray-700 transition-colors shadow-sm"
+                                                        onclick="location.href='/client/services/<%= s._id %>'"
+                                                        aria-label="View details">
+                                                        <i class="fas fa-arrow-right"></i>
+                                                    </button>
+                                                </div>
+                                </div>
+                                <% }) %>
+                                    <% } %>
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex justify-center items-center space-x-2 mt-8">
+                    <% let totalPages=pagination.pages; let currentPage=pagination.page; let startPage=1; let
+                        endPage=totalPages; if (totalPages> 5) {
+                        if (currentPage <= 3) { startPage=1; endPage=5; } else if (currentPage>= totalPages - 2) {
+                            startPage = totalPages - 4;
+                            endPage = totalPages;
+                            } else {
+                            startPage = currentPage - 2;
+                            endPage = currentPage + 2;
+                            }
+                            }
+                            for (let p = startPage; p <= endPage; p++) { %>
+                                <a href="?search=<%= filters.search %>&category=<%= filters.category %>&location=<%= filters.location %>&page=<%= p %>"
+                                    class="px-3 py-1 rounded-full border <%= p === pagination.page ? 'bg-gray-800 text-white' : 'bg-white text-gray-800' %>">
+                                    <%= p %>
+                                </a>
+                                <% } %>
+                </div>
+    </div>
+</div>
+
+<!-- Location Modal (inline) -->
+<div id="locationModal" class="modal">
+    <div class="modal-content bg-white p-6 rounded-3xl shadow-xl flex flex-col space-y-4">
+        <h2 class="text-xl font-bold text-gray-800 text-center">Set Your Location</h2>
+        <input type="text" id="modalLocationInput" value="<%= filters.location %>" placeholder="Enter city or area"
+            class="input-field w-full px-4 py-3 border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-400">
+        <div class="flex justify-end space-x-3">
+            <button id="cancelLocation"
+                class="px-5 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 font-semibold">
+                Cancel
+            </button>
+            <button id="saveLocation"
+                class="px-5 py-2 text-white bg-gray-800 rounded-lg hover:bg-gray-700 font-semibold">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Inline scripts for dropdown, modal, filtering -->
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const userLoggedIn = <%= !!user %>;
+        const BASE = '<%= baseUrl %>';  // e.g. '/client/services'
+
+        // helper to rebuild URL
+        function go(changes = {}) {
+            const p = new URLSearchParams(window.location.search);
+            Object.entries(changes).forEach(([k, v]) => {
+                if (v == null) p.delete(k);
+                else p.set(k, v);
+            });
+            if (!('page' in changes)) p.set('page', '1');
+            window.location.href = BASE + '?' + p.toString();
+        }
+
+        // CATEGORY DROPDOWN
+        const sel = document.getElementById('selectedCategoryDisplay');
+        const dd = document.getElementById('customCategoryDropdownList');
+        sel.addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('active'); });
+        document.addEventListener('click', () => dd.classList.remove('active'));
+        dd.addEventListener('click', e => {
+            const li = e.target.closest('.custom-dropdown-item');
+            if (!li) return;
+            go({ category: li.dataset.value });
+        });
+
+        // LOCATION FILTERS
+        document.getElementById('mobileLocationBtn')?.addEventListener('click', () => {
+            document.getElementById('locationModal').style.display = 'flex';
+        });
+        document.getElementById('cancelLocation')?.addEventListener('click', () => {
+            document.getElementById('locationModal').style.display = 'none';
+        });
+        document.getElementById('saveLocation')?.addEventListener('click', () => {
+            const v = document.getElementById('modalLocationInput').value.trim();
+            go({ location: v || null });
+        });
+        document.getElementById('locationInput')?.addEventListener('change', e => {
+            go({ location: e.target.value.trim() || null });
+        });
+
+        // FAVORITES FILTER
+        document.getElementById('filterFavoritesBtn')?.addEventListener('click', () => {
+            if (!userLoggedIn) return window.location = '/client/user/login';
+            const isFav = params.get('favorites') === 'true';
+            go({ favorites: String(!isFav) });
+        });
+
+        // HEART TOGGLE
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const serviceId = btn.dataset.serviceId;
+                if (!userLoggedIn) return window.location = '/client/user/login';
+
+                // build form to POST toggle
+                const p = new URLSearchParams(window.location.search);
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `${BASE}/favorite/${serviceId}?${p.toString()}`;
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    });
+</script>

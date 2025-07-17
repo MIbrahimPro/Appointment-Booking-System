@@ -1,0 +1,257 @@
+
+<link rel="stylesheet" href="/styles/appointment.css">
+
+<section class="flex flex-col items-center min-h-screen pt-20 pb-8">
+  <div class="w-full max-w-lg lg:max-w-4xl p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">
+      My Appointments
+    </h1>
+    <p class="heading-font text-gray-600 text-center mb-8 text-lg sm:text-xl">
+      View your scheduled and past services
+    </p>
+
+    <!-- Tabs -->
+    <div class="flex space-x-4 mb-8 w-full justify-center">
+      <button id="allBtn" class="tab-button active">All</button>
+      <button id="upcomingBtn" class="tab-button">Upcoming</button>
+      <button id="pastBtn" class="tab-button">Past</button>
+    </div>
+
+    <!-- Grid -->
+    <div id="appointmentsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+      <% if (!appointments.length) { %>
+        <p class="text-center text-gray-600 col-span-full">No appointments found.</p>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- Leave Review Modal -->
+<div id="leaveReviewModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2 class="text-xl font-bold text-gray-800 text-center mb-4">Leave a Review</h2>
+    <div class="star-rating" id="reviewStars">
+      <% for (let i = 1; i <= 5; i++) { %>
+        <i class="far fa-star" data-rating="<%= i %>"></i>
+      <% } %>
+    </div>
+    <textarea id="reviewDescription"
+              class="input-field w-full px-4 py-3 border border-gray-300 rounded-xl mb-4"
+              rows="4" placeholder="Share your experience..."></textarea>
+    <div class="flex justify-end space-x-3">
+      <button id="cancelLeaveReview" class="px-5 py-2 bg-gray-200 rounded-lg">Cancel</button>
+      <button id="submitReview" class="px-5 py-2 bg-gray-800 text-white rounded-lg">Submit Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Review Modal -->
+<div id="viewReviewModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h2 class="text-xl font-bold text-gray-800 text-center mb-4">Your Review</h2>
+    <div class="star-rating" id="viewReviewStars"></div>
+    <p id="viewReviewDescription" class="text-gray-700 text-center mb-4"></p>
+    <div class="flex justify-center">
+      <button id="closeViewReview" class="px-5 py-2 bg-gray-200 rounded-lg">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 1) Data injection (no stray characters)
+  const appointments = <%- JSON.stringify(appointments) %>;
+
+  // 2) DOM references
+  const grid = document.getElementById('appointmentsGrid');
+  const allBtn = document.getElementById('allBtn');
+  const upcomingBtn = document.getElementById('upcomingBtn');
+  const pastBtn = document.getElementById('pastBtn');
+
+  // Modal & review state
+  let selectedAppointmentId = null;
+  let selectedRating = 0;
+
+  // Helpers
+  function getLightShade(hsl, light = 95) {
+    const [h, s] = hsl.match(/\d+/g).map(Number);
+    return `hsl(${h},${s}%,${light}%)`;
+  }
+
+  // Render appointment cards
+  function renderAppointments(list) {
+    grid.innerHTML = '';
+    if (list.length === 0) {
+      grid.innerHTML = '<p class="text-center text-gray-600 col-span-full">No appointments found.</p>';
+      return;
+    }
+
+    const now = new Date();
+    list.forEach(appt => {
+      const svc = appt.service_id;
+      const cat = svc.category_id;
+      const dt = new Date(appt.date);
+      const [hr, min] = appt.time.split(':').map(Number);
+      dt.setHours(hr, min);
+
+      const isUpcoming = dt >= now && appt.status !== 'cancelled';
+      const bgColor = isUpcoming ? getLightShade(cat.color) : 'white';
+
+      const avgBadge = appt.avgRating
+        ? `<span class="flex items-center text-yellow-500">
+             <i class="fas fa-star mr-1"></i>${appt.avgRating}
+           </span>`
+        : '';
+
+      let reviewBtn = '';
+      if (!isUpcoming && appt.status === 'completed') {
+        if (appt.myReview) {
+          reviewBtn = `<button class="review-button view-review" data-id="${appt._id}">
+                         <i class="fas fa-star mr-1"></i> View Review (${appt.myReview.rating})
+                       </button>`;
+        } else {
+          reviewBtn = `<button class="review-button leave-review" data-id="${appt._id}">
+                         <i class="far fa-comment-dots mr-1"></i> Leave Review
+                       </button>`;
+        }
+      }
+
+      const card = document.createElement('div');
+      card.className = 'appointment-card';
+      card.style.backgroundColor = bgColor;
+      card.style.borderColor = cat.color;
+      card.innerHTML = `
+        <div class="flex items-center space-x-4 mb-4">
+          <img src="${svc.user_id.image}" alt="${svc.user_id.name}" class="appointment-card-image">
+          <div class="flex-grow">
+            <a href="/client/services/${svc._id}"  class="font-bold text-xl text-gray-900">${svc.name}</a>
+            <p class="text-sm text-gray-600">${cat.name}</p>
+            <div class="mt-2 text-sm flex items-center">
+              <i class="far fa-calendar-alt mr-2"></i>
+              ${dt.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+          <p class="text-xl font-bold text-gray-800">$${svc.price}</p>
+          <div class="flex items-center space-x-2">
+            <span class="status-pill ${appt.status}-status">${appt.status}</span>
+            ${avgBadge}
+          </div>
+        </div>
+        ${reviewBtn ? `<div class="w-full text-right mt-4">${reviewBtn}</div>` : ''}
+      `;
+      grid.appendChild(card);
+    });
+
+    attachReviewListeners();
+  }
+
+  // Filtering logic
+  function filter(type) {
+    const now = new Date();
+    const filtered = appointments.filter(appt => {
+      const dt = new Date(appt.date);
+      const [hr, min] = appt.time.split(':').map(Number);
+      dt.setHours(hr, min);
+      const upcoming = dt >= now && appt.status !== 'cancelled';
+      if (type === 'all') return true;
+      if (type === 'upcoming') return upcoming;
+      return !upcoming;
+    });
+
+    renderAppointments(filtered);
+    [allBtn, upcomingBtn, pastBtn].forEach(b => b.classList.remove('active'));
+    document.getElementById(type + 'Btn').classList.add('active');
+  }
+
+  // Attach review-button listeners
+  function attachReviewListeners() {
+    document.querySelectorAll('.leave-review').forEach(btn =>
+      btn.addEventListener('click', () => openLeaveReview(btn.dataset.id))
+    );
+    document.querySelectorAll('.view-review').forEach(btn =>
+      btn.addEventListener('click', () => openViewReview(btn.dataset.id))
+    );
+  }
+
+  // Modal open/close
+  function openLeaveReview(id) {
+    selectedAppointmentId = id;
+    selectedRating = 0;
+    document.querySelectorAll('#reviewStars i').forEach(star => {
+      star.classList.replace('fas', 'far');
+      star.classList.remove('filled');
+    });
+    document.getElementById('reviewDescription').value = '';
+    document.getElementById('leaveReviewModal').style.display = 'flex';
+  }
+
+  function openViewReview(id) {
+    const appt = appointments.find(a => a._id === id);
+    if (!appt || !appt.myReview) return;
+    const stars = document.getElementById('viewReviewStars');
+    stars.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const star = document.createElement('i');
+      star.className = `fas fa-star text-2xl ${i <= appt.myReview.rating ? 'filled' : 'text-gray-300'}`;
+      stars.appendChild(star);
+    }
+    document.getElementById('viewReviewDescription').textContent = appt.myReview.comment || '';
+    document.getElementById('viewReviewModal').style.display = 'flex';
+  }
+
+  document.getElementById('cancelLeaveReview').onclick = () =>
+    document.getElementById('leaveReviewModal').style.display = 'none';
+  document.getElementById('closeViewReview').onclick = () =>
+    document.getElementById('viewReviewModal').style.display = 'none';
+
+  // Star selection in leave-review modal
+  document.getElementById('reviewStars').onclick = e => {
+    const star = e.target.closest('i');
+    if (!star) return;
+    selectedRating = Number(star.dataset.rating);
+    document.querySelectorAll('#reviewStars i').forEach((s, idx) => {
+      if (idx < selectedRating) {
+        s.classList.replace('far', 'fas');
+        s.classList.add('filled');
+      } else {
+        s.classList.replace('fas', 'far');
+        s.classList.remove('filled');
+      }
+    });
+  };
+
+  // Submit review
+  document.getElementById('submitReview').onclick = async () => {
+    const comment = document.getElementById('reviewDescription').value.trim();
+    if (!selectedRating || !comment) {
+      return alert('Please select a star rating and write a comment.');
+    }
+    try {
+      const res = await fetch(`/api/appointments/${selectedAppointmentId}/review`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ rating: selectedRating, comment })
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Failed to save review');
+      // Update local data
+      const appt = appointments.find(a => a._id === selectedAppointmentId);
+      appt.myReview = { rating: selectedRating, comment };
+      appt.avgRating = json.review.rating.toFixed(1);
+      alert('Review submitted!');
+      document.getElementById('leaveReviewModal').style.display = 'none';
+      filter(document.querySelector('.tab-button.active').id.replace('Btn', ''));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  // Tab buttons
+  allBtn.onclick = () => filter('all');
+  upcomingBtn.onclick = () => filter('upcoming');
+  pastBtn.onclick = () => filter('past');
+
+  // Initial render
+  window.addEventListener('DOMContentLoaded', () => filter('all'));
+</script>

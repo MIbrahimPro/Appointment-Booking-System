@@ -1,0 +1,141 @@
+<nav id="mainNav" class="navbar fixed top-4 z-50 w-full flex items-center justify-between py-3 px-6 md:px-8
+                bg-white/30 backdrop-blur-lg rounded-full border border-white/40 shadow-xl
+                max-w-7xl mx-auto transition-all duration-300 ease-in-out">
+    <div id="navLogo" class="flex items-center transition-all duration-300 ease-in-out">
+        <a href="/" class="text-2xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
+            <img src="/images/favicon.ico" alt="Company Logo" class="h-6 w-auto min-w-[24px]"> <span
+                class="hidden sm:inline">Scheduly</span>
+        </a>
+    </div>
+
+    <form id="navSearchForm" action="/client/services" method="get"
+        class="relative flex-grow mx-4 md:mx-8 max-w-md transition-all duration-300 ease-in-out">
+        <input type="text" id="searchInput" name="search" placeholder="Search..." class="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300
+                             focus:outline-none focus:ring-2 focus:ring-blue-500
+                             bg-white/60 backdrop-blur-sm text-gray-800 placeholder-gray-500">
+        <i class="fas fa-search absolute left-8 top-1/2 -translate-y-1/2 text-gray-400"></i>
+    </form>
+
+    <div x-data="{ open: false }" class="relative flex items-center transition-all duration-300 ease-in-out">
+
+        <div id="navIconsLarge" class="hidden md:flex items-center space-x-3 md:space-x-4">
+            <a href="/client/services/manage" class="nav-icon-bubble" title="Services">
+                <i class="fas fa-cogs text-gray-700 text-lg"></i>
+                <span class="sr-only">Manage</span>
+            </a>
+            <a href="/client/services" class="nav-icon-bubble" title="Services">
+                <i class="fas fa-handshake text-gray-700 text-lg"></i>
+                <span class="sr-only">Services</span>
+            </a>
+            <a href="/client/appointments" class="nav-icon-bubble" title="Appointments">
+                <i class="fa-solid fa-calendar text-gray-700 text-lg"></i>
+                <span class="sr-only">Appointments</span>
+            </a>
+            <a href="/client/user/profile" class="nav-icon-bubble" title="Profile">
+                <i class="fas fa-user-circle text-gray-700 text-lg"></i>
+                <span class="sr-only">Profile</span>
+            </a>
+        </div>
+
+        <div id="navIconsSmall" class="md:hidden">
+            <button @click="open = !open" class="nav-icon-bubble focus:outline-none" title="More Options">
+                <i class="fas fa-ellipsis-h text-gray-700 text-lg"></i> <span class="sr-only">More Options</span>
+            </button>
+
+            <div x-show="open" @click.away="open = false" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                class="absolute right-0 mt-2 w-48 bg-white/90 backdrop-blur-md border border-white/50 rounded-lg shadow-xl py-2 z-10 origin-top-right">
+                <a href="/client/services/manage"
+                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fas fa-cogs"></i> Manage
+                </a>
+                <a href="/client/services"
+                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fas fa-handshake"></i> Services
+                </a>
+                <a href="/client/appointments"
+                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar"></i> Appointments
+                </a>
+                <a href="/client/user/profile"
+                    class="block px-4 py-2 text-gray-800 hover:bg-gray-100 flex items-center gap-2">
+                    <i class="fas fa-user-circle"></i> Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mainNav = document.getElementById('mainNav');
+        const searchInput = document.getElementById('searchInput');
+        const navLogo = document.getElementById('navLogo');
+        const navIconsLarge = document.getElementById('navIconsLarge');
+        const navIconsSmall = document.getElementById('navIconsSmall');
+        const navSearchForm = document.getElementById('navSearchForm');
+
+        // Function to toggle visibility of logo and icons when search is focused/blurred
+        function toggleNavElements(isFocused) {
+            if (window.innerWidth < 768) { // Only apply on small screens
+                if (isFocused) {
+                    // Hide Logo
+                    navLogo.classList.add('opacity-0', 'scale-90', 'pointer-events-none', 'w-0', 'hidden');
+                    // Hide the Mobile dropdown trigger
+                    navIconsSmall.classList.add('opacity-0', 'scale-90', 'pointer-events-none', 'w-0', 'hidden');
+
+                    // Expand search bar
+                    // We remove specific max-width and margin classes that apply to md and larger
+                    // and instead apply w-full and mx-0 for small screens.
+                    navSearchForm.classList.remove('max-w-md', 'mx-4', 'md:mx-8');
+                    navSearchForm.classList.add('w-full', 'mx-0');
+
+                    // Adjust mainNav justification
+                    mainNav.classList.remove('justify-between');
+                    mainNav.classList.add('justify-center');
+                } else {
+                    // Use a timeout to allow click events on dropdown items if blurring from input
+                    setTimeout(() => {
+                        if (document.activeElement !== searchInput) {
+                            // Restore Logo
+                            navLogo.classList.remove('opacity-0', 'scale-90', 'pointer-events-none', 'w-0', 'hidden');
+                            // Restore the Mobile dropdown trigger ONLY
+                            // We explicitly avoid touching navIconsLarge here as its visibility
+                            // is handled by Tailwind's hidden/md:flex classes based on screen size.
+                            navIconsSmall.classList.remove('opacity-0', 'scale-90', 'pointer-events-none', 'w-0', 'hidden');
+
+                            // Restore search bar to its original small screen state
+                            navSearchForm.classList.remove('w-full', 'mx-0');
+                            // Add back appropriate spacing for small screens (see CSS section below)
+                            navSearchForm.classList.add('max-w-md', 'mx-4', 'md:mx-8'); // Re-add for desktop; we'll fix mobile spacing in CSS
+
+                            // Restore mainNav justification
+                            mainNav.classList.remove('justify-center');
+                            mainNav.classList.add('justify-between');
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        searchInput.addEventListener('focus', () => toggleNavElements(true));
+        searchInput.addEventListener('blur', () => toggleNavElements(false));
+
+        // Existing search form submission logic
+        document.getElementById('navSearchForm').addEventListener('submit', function (e) {
+            const search = document.getElementById('searchInput').value.trim();
+            if (!window.location.pathname.includes('/client/services')) {
+                e.preventDefault();
+                window.location.href = `/client/services?search=${encodeURIComponent(search)}`;
+            }
+        });
+
+        // Existing search input pre-fill logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            document.getElementById('searchInput').value = params.get('search') || '';
+        });
+    });
+</script>

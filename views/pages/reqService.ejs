@@ -1,0 +1,172 @@
+<link rel="stylesheet" href="/styles/req.css">
+
+
+<div class="flex flex-col items-center min-h-screen pt-8 pb-8">
+
+    <div class="w-full max-w-lg lg:max-w-4xl p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">
+            Manage Requests for
+            <span id="serviceNameDisplay" class="text-gray-600">
+                <%= service.name %>
+            </span>
+        </h1>
+        <p class="heading-font text-gray-600 text-center mb-8 text-lg sm:text-xl">
+            Review and manage incoming service appointments
+        </p>
+
+        <!-- Tabs -->
+        <div class="flex space-x-4 mb-8 w-full justify-center">
+            <button id="allBtn" class="tab-button active">All</button>
+            <button id="upcomingBtn" class="tab-button">Upcoming</button>
+            <button id="pastBtn" class="tab-button">Past</button>
+        </div>
+
+        <!-- Grid -->
+        <div id="requestsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            <!-- cards inserted here by JS -->
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        // 1) Pull server data correctly
+        const service = <%- JSON.stringify(service || {}) %>;
+        let appointments = <%- JSON.stringify(appointments || []) %>;
+
+        // helper: add minutes to a “HH:MM” string
+        function addMinutes(time, mins) {
+            const [h, m] = time.split(':').map(Number);
+            const dt = new Date();
+            dt.setHours(h, m);
+            dt.setMinutes(dt.getMinutes() + mins);
+            return dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        const grid = document.getElementById('requestsGrid');
+        const tabs = { all: 'allBtn', upcoming: 'upcomingBtn', past: 'pastBtn' };
+        let currentFilter = 'all';
+
+        // render according to filter
+        function render(filter) {
+            grid.innerHTML = '';
+            const now = new Date();
+
+            // only appointments for this service
+            let list = appointments.filter(a => String(a.service_id) === String(service._id));
+
+            // build a Date object once per appointment
+            list = list.map(a => {
+                const dateOnly = a.date.split('T')[0];
+                a._dt = new Date(`${dateOnly}T${a.time}`);
+                return a;
+            });
+
+            if (filter === 'upcoming') {
+                list = list.filter(a =>
+                    a._dt >= now &&
+                    (a.status === 'pending' || a.status === 'confirmed')
+                );
+            }
+            else if (filter === 'past') {
+                list = list.filter(a =>
+                    a._dt < now ||
+                    a.status === 'cancelled' ||
+                    a.status === 'completed'
+                );
+            }
+
+            // sort by datetime ascending
+            list.sort((a, b) => a._dt - b._dt);
+
+            if (list.length === 0) {
+                grid.innerHTML = '<p class="text-center text-gray-600 col-span-full">No appointments found.</p>';
+                return;
+            }
+
+            // build cards
+            list.forEach(a => {
+                const dateStr = a._dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const timeStr = a._dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const endStr = addMinutes(a.time, service.duration);
+
+                let pillClass = '', disabled = '', canAct = false;
+                switch (a.status) {
+                    case 'pending': pillClass = 'pending-status'; canAct = true; break;
+                    case 'confirmed': pillClass = 'confirmed-status'; break;
+                    case 'cancelled': pillClass = 'cancelled-status'; disabled = 'disabled'; break;
+                    case 'completed': pillClass = 'completed-status'; disabled = 'disabled'; break;
+                }
+
+                grid.insertAdjacentHTML('beforeend', `
+          <div class="request-card ${disabled}" data-id="${a._id}">
+            <div class="flex items-center mb-2">
+                ${a.user_id.image
+                    ? `<img src="${a.user_id.image}" alt="${a.user_id.name}" class="w-10 h-10 rounded-full object-cover mr-3 border-2 border-gray-300">`
+                    : `<div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-600 mr-3 border-2 border-gray-300">${a.user_id.name.split(' ').map(w => w[0]).join('').toUpperCase()}</div>`
+                }
+                <span class="font-bold text-xl text-gray-900">${a.user_id.name}</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">For Service: ${service.name}</p>
+            <div class="flex items-center text-gray-700 mb-2">
+              <i class="far fa-calendar-alt mr-2"></i>${dateStr}
+            </div>
+            <div class="flex items-center text-gray-700 mb-4">
+              <i class="far fa-clock mr-2"></i>${timeStr} – ${endStr}
+            </div>
+            <div class="flex justify-between items-center w-full mt-auto pt-4 border-t border-gray-200">
+              <span class="status-pill ${pillClass}">${a.status}</span>
+              <div class="flex space-x-2">
+                <button class="action-button confirm" data-action="confirm" ${!canAct ? 'disabled' : ''}>
+                  <i class="fas fa-check-circle mr-1"></i>Confirm
+                </button>
+                <button class="action-button cancel" data-action="cancel" ${!canAct ? 'disabled' : ''}>
+                  <i class="fas fa-times-circle mr-1"></i>Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        `);
+            });
+
+            attachListeners();
+        }
+
+        // wire up tab clicks
+        Object.entries(tabs).forEach(([filter, btnId]) => {
+            document.getElementById(btnId).addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.getElementById(btnId).classList.add('active');
+                currentFilter = filter;
+                render(filter);
+            });
+        });
+
+        // confirm/cancel actions
+        function attachListeners() {
+            document.querySelectorAll('.request-card').forEach(card => {
+                card.querySelectorAll('.action-button').forEach(btn => {
+                    btn.onclick = async () => {
+                        const id = card.dataset.id;
+                        const newStatus = btn.dataset.action === 'confirm' ? 'confirmed' : 'cancelled';
+                        try {
+                            const res = await fetch(`/api/appointments/${id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: newStatus })
+                            });
+                            if (!res.ok) throw await res.json();
+                            // update local copy and re-render
+                            appointments = appointments.map(a => a._id === id ? { ...a, status: newStatus } : a);
+                            render(currentFilter);
+                        } catch (e) {
+                            alert(e.message || 'Error updating appointment');
+                        }
+                    };
+                });
+            });
+        }
+
+        // initial render
+        render('all');
+    })();
+</script>

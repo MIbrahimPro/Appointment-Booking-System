@@ -1,0 +1,211 @@
+<% /* views/pages/service-details.ejs */ %>
+    <link rel="stylesheet" href="/styles/detail.css">
+
+    <% const SERVICE_ID=service._id.toString(); const BASE_CLIENT=baseUrl; const USER_LOGGED=!!user; const
+        DURATION=service.duration; %>
+
+        <div class="flex flex-col items-center min-h-screen pt-20 pb-8">
+            <div class="w-full max-w-lg lg:max-w-4xl p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+
+                <!-- Header -->
+                <div class="w-full flex justify-between items-center mb-6">
+                    <button class="icon-bubble-large bg-white text-gray-700 hover:bg-gray-100" onclick="history.back()"
+                        aria-label="Back">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </button>
+                    <button id="favBtn"
+                        class="icon-bubble-large bg-white text-gray-700 hover:bg-red-100 hover:text-red-600"
+                        aria-label="Favorite toggle">
+                        <i id="favIcon"
+                            class="<%= service.isFavorite ? 'fas fa-heart text-red-500' : 'far fa-heart text-gray-700' %> text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Provider Card -->
+                <div
+                    class="bg-white rounded-3xl shadow-lg p-6 w-full mb-8 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left relative">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-blue-100 to-purple-100 opacity-50 -z-10 rounded-3xl">
+                    </div>
+                    <div class="relative z-10 w-36 h-36 sm:w-48 sm:h-48 flex-shrink-0 mb-6 sm:mb-0 sm:mr-6">
+                        <% if (service.provider.image) { %>
+                            <img src="<%= service.provider.image %>" alt="<%= service.provider.name %>"
+                                class="rounded-xl object-cover w-full h-full shadow-lg border-4 border-white">
+                            <p class="no-underline hover:underline cursor-pointer text-lg text-center text-gray-600 font-bold mt-2 mb-2" 
+                                onclick="location.href='/client/publicProfile/<%= service.provider._id %>/profile'">
+                                <%= service.provider.name %>
+                            </p>
+                            <% } else { %>
+                                <div
+                                    class="no-underline hover:underline cursor-pointer rounded-xl bg-gray-200 w-full h-full flex items-center justify-center text-xl font-bold text-gray-600 shadow-lg border-4 border-white"
+                                    onclick="location.href='/client/publicProfile/<%= service.provider._id %>/profile'"
+                                >
+                                    <%= service.provider.name.split(' ').map(w=>w[0]).join('').toUpperCase() %>
+                            </div>
+                            <p class="no-underline hover:underline cursor-pointer text-lg text-center text-gray-600 font-bold mt-2 mb-2" 
+                                onclick="location.href='/client/publicProfile/<%= service.provider._id %>/profile'">
+                                <%= service.provider.name %>
+                            </p>
+                        <% } %>
+                </div>
+
+                
+                <div class="relative z-10 flex flex-col items-center sm:items-start pt-5">
+        <p class="text-sm font-semibold text-gray-600 mb-2">ID: <%= SERVICE_ID %></p>
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-1"><%= service.name %></h2>
+        <p class="text-lg text-gray-600 mb-2"><%= service.description %></p>
+        <p class="text-2xl font-bold text-gray-800 mb-4">
+          $<%= service.price %><span class="text-base font-normal text-gray-600">/session</span>
+        </p>
+        <div class="text-gray-600 mb-4">
+          <p><strong>Working Hours:</strong>
+            <%= service.working_hours.map(w => `${w.day.slice(0,3)} ${w.start_time}-${w.end_time}`).join(' , ') %>
+          </p>
+          <p><strong>Duration:</strong> <%= DURATION %> minutes</p>
+          <p><strong>Location:</strong> <%= service.location %> </p>
+          <p><strong>Experience in years:</strong> <%= service.experience %> </p>
+        </div>
+        <div class="flex items-center flex-wrap space-x-2 space-y-2">
+          <button class="bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center space-x-1 px-4 py-2 rounded-full shadow-md" onclick="location.href='/client/reviews/services/<%= SERVICE_ID %>'">
+            <i class="fas fa-star text-yellow-500"></i>
+            <span class="text-base font-semibold"><%= service.avgRating.toFixed(1) %></span>
+            <span class="text-base font-semibold"> stars</span>
+          </button>
+      
+          <button class="bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center space-x-1 px-4 py-2 rounded-full shadow-md" style="background-color: <%= service.category.color %>;">
+            <img class="w-5 h-5 object-contain" src="<%= service.category.icon %>" alt="<%= service.category.name %>">
+            <span class="text-base font-semibold text-white"><%= service.category.name %></span>
+          </button>
+        </div>
+
+
+                    </div>
+                </div>
+
+                <!-- Availability -->
+                <div class="bg-white rounded-3xl shadow-lg p-6 w-full mb-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Pick a Date</h3>
+                    <div class="flex space-x-4 overflow-x-auto pb-2 mb-6">
+                        <% dates.forEach(d=> { %>
+                            <button data-date="<%= d.getFullYear()%>-<%= String(d.getMonth()+1).padStart(2,'0') %>-<%= String(d.getDate()).padStart(2,'0') %>"
+                                            class="date-select-button flex-shrink-0 px-3 py-2 bg-gray-100 rounded-2xl">
+                                            <span class="block text-gray-700 font-semibold text-sm">
+                                                <%= d.toLocaleString('en-US',{ weekday:'short' }) %>
+                                            </span>
+                                            <span class="block text-gray-500 text-lg">
+                                                <%= d.getDate() %>
+                                            </span>
+                                            </button>
+                                            <% }) %>
+                                </div>
+                                <h4 class="text-lg font-bold text-gray-800 mb-4">Timeslots</h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                    <!-- slots injected by JS -->
+                                </div>
+                    </div>
+
+                    <p class="w-full bg-white text-gray-800 p-4 rounded-2xl shadow-md mb-6">
+    <span class="font-semibold">Note:</span> All payments to be made on site, No payments made online before hand.
+</p>
+
+                    <!-- Book Button -->
+                    <button id="bookBtn"
+                        class="w-full bg-gray-800 text-white py-4 rounded-2xl font-semibold text-xl hover:bg-gray-700 transition-colors shadow-lg">
+                        Book Appointment
+                    </button>
+                </div>
+            </div>
+
+            <script>
+                const SERVICE_ID = '<%= SERVICE_ID %>';
+                const BASE_CLIENT = '<%= BASE_CLIENT %>';
+                const USER_LOGGED = <%= USER_LOGGED %>;
+                const DURATION = <%= DURATION %>;
+
+                function fmt(d) {
+                    return d.toLocaleTimeString('en-US', {
+                        hour: '2-digit', minute: '2-digit'
+                    }).toLowerCase();
+                }
+
+                async function loadSlots(date) {
+                    const grid = document.querySelector('.grid');
+                    grid.innerHTML = '';
+                    try {
+                        const res = await fetch(`/api/services/${SERVICE_ID}/availability?date=${date}`);
+                        if (!res.ok) throw '';
+                        const { slots } = await res.json();
+                        slots.forEach(({ time, disabled }) => {
+                            const start = new Date(`${date}T${time}:00`);
+                            const end = new Date(start.getTime() + DURATION * 60000);
+                            const label = `${fmt(start)} - ${fmt(end)}`;
+                            const btn = document.createElement('button');
+                            btn.textContent = label;
+                            btn.dataset.time = time;
+                            btn.className = 'time-slot-button px-2 py-1 bg-gray-100 rounded-lg';
+                            if (disabled) {
+                                btn.style.opacity = '0.5';
+                                btn.disabled = true;
+                            } else {
+                                btn.onclick = () => {
+                                    document.querySelectorAll('.time-slot-button.selected')
+                                        .forEach(x => x.classList.remove('selected'));
+                                    btn.classList.add('selected');
+                                };
+                            }
+                            grid.appendChild(btn);
+                        });
+                    } catch {
+                        alert('Failed to load time slots.');
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelectorAll('.date-select-button').forEach(btn => {
+                        btn.onclick = () => {
+                            console.log('Selected date:', btn.dataset.date); // <-- Add this
+                            document.querySelectorAll('.date-select-button.selected')
+                                .forEach(x => x.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            loadSlots(btn.dataset.date);
+                        };
+                    });
+                    const first = document.querySelector('.date-select-button');
+                    if (first) first.click();
+
+                    document.getElementById('favBtn').onclick = async () => {
+                        if (!USER_LOGGED) return window.location = '/client/user/login';
+                        const res = await fetch(`${BASE_CLIENT}/favorite/${SERVICE_ID}`, { method: 'POST' });
+                        if (res.ok) {
+                            const data = await res.json();
+                            const favs = data.favorites.map(f => f.toString());
+                            const isFav = favs.includes(SERVICE_ID);
+                            const icon = document.getElementById('favIcon');
+                            icon.className = isFav ? 'fas fa-heart text-red-500 text-xl' : 'far fa-heart text-gray-700 text-xl';
+                        }
+                    };
+
+                    document.getElementById('bookBtn').onclick = async () => {
+                        if (!USER_LOGGED) return window.location = '/client/user/login';
+                        const dateBtn = document.querySelector('.date-select-button.selected');
+                        const slotBtn = document.querySelector('.time-slot-button.selected');
+                        if (!dateBtn || !slotBtn) return alert('Please select date & time.');
+                        const payload = {
+                            service_id: SERVICE_ID,
+                            date: dateBtn.dataset.date,
+                            time: slotBtn.dataset.time
+                        };
+                        const res = await fetch('/api/appointments', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => null);
+                            alert(err?.message || 'Booking failed');
+                        } else {
+                            window.location = '/client/appointments';
+                        }
+                    };
+                });
+            </script>

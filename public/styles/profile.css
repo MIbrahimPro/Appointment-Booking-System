@@ -1,0 +1,35 @@
+/* Focus styles for inputs (customizing Tailwind's default focus ring) */
+.input-field:focus {
+    outline: none;
+    /* Remove default outline */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45);
+    /* Custom blue ring */
+    border-color: transparent;
+    /* Ensure border doesn't change color itself */
+}
+
+
+/* Profile Image container for positioning edit icon */
+.profile-image-container {
+    position: relative;
+    display: inline-block;
+    /* To center the container itself */
+}
+
+.profile-image-edit-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: #f0f0f0;
+    /* Match body background or a light accent */
+    color: #333;
+    border-radius: 50%;
+    padding: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+.profile-image-edit-icon:hover {
+    background-color: #e0e0e0;
+}

@@ -1,0 +1,181 @@
+<link rel="stylesheet" href="/styles/manage.css">
+
+
+<div class="flex flex-col items-center min-h-screen pt-8 pb-8">
+
+
+    <!-- Main Content Area -->
+    <div class="w-full max-w-lg lg:max-w-4xl p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 text-center mb-2">
+            Manage Your Services
+            <span id="usernameDisplay" class="text-gray-600">for <%= user.name %></span>
+        </h1>
+        <p class="heading-font text-gray-600 text-center mb-8 text-lg sm:text-xl">
+            View, edit, or remove your service offerings
+        </p>
+
+        <!-- Add New Service Button -->
+        <button id="addNewServiceBtn" class="w-full sm:w-auto px-8 py-3 bg-gray-800 text-white rounded-2xl font-semibold mb-8
+                       hover:bg-gray-700 transition-colors duration-200 ease-in-out
+                       focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-offset-2">
+            <i class="fas fa-plus-circle mr-2"></i> Add New Service
+        </button>
+
+        <!-- Services Grid -->
+        <div id="servicesGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+            <!-- JS will populate cards here -->
+        </div>
+    </div>
+
+</div>
+
+
+
+<script>
+  (function () {
+    const userId          = '<%= user._id %>';
+    let services          = [];
+    let categories        = [];
+    let servicesToDisplay = [];
+
+    async function fetchData() {
+      const [catRes, svcRes] = await Promise.all([
+        fetch('/api/categories').then(r => r.json()),
+        fetch('/api/services/mine').then(r => r.json())
+      ]);
+      categories = catRes.categories;
+      services   = svcRes.services;
+      servicesToDisplay = services.map(s => {
+        const cat = categories.find(c => c._id === s.category_id) || {};
+        const [h, sat, lig] = (cat.color || 'hsl(0,0%,95%)').match(/\d+/g);
+        return {
+          ...s,
+          category      : cat,
+          cardBgColor   : `hsl(${h},${sat}%,95%)`,
+          borderColor   : cat.color || '#888888',
+        };
+      });
+      renderGrid();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('servicesGrid');
+      grid.innerHTML = '';
+
+      if (!servicesToDisplay.length) {
+        grid.innerHTML = '<p class="text-center text-gray-600 col-span-full">You have not created any services yet.</p>';
+        return;
+      }
+
+      for (const s of servicesToDisplay) {
+        const serviceCardHtml = `
+          <div class="service-card relative cursor-pointer" data-service-id="${s._id}"
+               style="background-color:${s.cardBgColor}; border-color:${s.borderColor};">
+            <!-- Rating pill -->
+            <div class="absolute top-[1.5rem] right-[1.5rem] rating-pill cursor-pointer" 
+                 data-service-id="${s._id}">
+              <i class="fas fa-star mr-1"></i>
+              <span>${s.rating?.toFixed(1) ?? '—'}</span>
+            </div>
+
+            <!-- Category pill -->
+            <div class="absolute top-[1.5rem] left-[1.5rem] category-pill">
+              ${s.category?.icon 
+                ? `<img src="${s.category.icon}" alt="${s.category.name}" 
+                        class="category-icon-image p-1 rounded-full" 
+                        style="background-color:${s.borderColor}">`
+                : ''
+              }
+              <span class="font-semibold text-gray-700">${s.category?.name || 'Uncategorized'}</span>
+            </div>
+
+            <h3 class="font-bold text-xl text-gray-900 mt-[3.2rem]">${s.name}</h3>
+            <p class="text-sm text-gray-600 mb-2">${s.description}</p>
+            <p class="text-2xl font-bold text-gray-800 mt-2 mb-1">
+              $${s.price} <span class="text-sm font-normal text-gray-600">/ ${s.duration} mins</span>
+            </p>
+            <div class="flex items-center text-gray-500 text-sm mb-4">
+              <i class="fas fa-map-marker-alt mr-1"></i>
+              <span>${s.location}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-end sm:justify-between items-stretch sm:items-center 
+                        space-y-2 sm:space-y-0 sm:space-x-3 w-full mt-auto pt-4 border-t border-gray-200">
+              <button class="action-button requests" data-service-id="${s._id}">
+                <i class="fas fa-inbox mr-1"></i>Requests
+              </button>
+              <div class="flex space-x-3">
+                <button class="action-button edit" data-service-id="${s._id}">
+                  <i class="fas fa-edit mr-1"></i>Edit
+                </button>
+                <button class="action-button delete" data-service-id="${s._id}">
+                  <i class="fas fa-trash-alt mr-1"></i>Delete
+                </button>
+              </div>
+            </div>
+          </div>`;
+        grid.insertAdjacentHTML('beforeend', serviceCardHtml);
+      }
+
+      attachGridListeners();
+    }
+
+    function attachGridListeners() {
+      const grid = document.getElementById('servicesGrid');
+
+      // 1) clicking anywhere on the card → service detail
+      grid.querySelectorAll('.service-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = card.dataset.serviceId;
+          window.location.href = `/client/services/${id}`;
+        });
+      });
+
+      // 2) Prevent propagation for buttons & rating-pill
+      grid.querySelectorAll('.action-button, .rating-pill').forEach(el => {
+        el.addEventListener('click', e => e.stopPropagation());
+      });
+
+      // 3) rating-pill → reviews page
+      grid.querySelectorAll('.rating-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          const id = pill.dataset.serviceId;
+          window.location.href = `/client/reviews/services/${id}`;
+        });
+      });
+
+      // 4) Requests button
+      grid.querySelectorAll('.action-button.requests').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.serviceId;
+          window.location.href = `/client/services/manage/requests/${id}`;
+        });
+      });
+
+      // 5) Edit button (correct plural `services`)
+      grid.querySelectorAll('.action-button.edit').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.serviceId;
+          window.location.href = `/client/services/manage/edit/${id}`;
+        });
+      });
+
+      // 6) Delete button
+      grid.querySelectorAll('.action-button.delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.serviceId;
+          if (!confirm('Delete this service?')) return;
+          await fetch(`/api/services/${id}`, { method: 'DELETE' });
+          fetchData();
+        });
+      });
+    }
+
+    document.getElementById('addNewServiceBtn').addEventListener('click', () => {
+      window.location.href = '/client/services/manage/create';
+    });
+
+    document.addEventListener('DOMContentLoaded', fetchData);
+  })();
+</script>

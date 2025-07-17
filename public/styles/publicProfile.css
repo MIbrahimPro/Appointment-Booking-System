@@ -1,0 +1,122 @@
+.input-field:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45);
+    border-color: transparent;
+}
+
+.heading-font {
+    font-family: "Dancing Script", cursive;
+}
+
+/* Removed .nav-icon-bubble styles as navbar is removed */
+
+.profile-image {
+    border-radius: 1.5rem;
+    /* Large rounded corners for the profile pic */
+    object-fit: cover;
+    width: 144px;
+    /* w-36 */
+    height: 144px;
+    /* h-36 */
+    border: 4px solid white;
+    /* White border similar to other cards */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.service-card {
+    background-color: white;
+    /* Default, overridden by JS for category color */
+    color: #333;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border-width: 1px;
+    border-style: solid;
+    overflow: hidden;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.service-card-image {
+    border-radius: 0.75rem;
+    /* Rounded corners for square image */
+    object-fit: cover;
+    width: 72px;
+    height: 72px;
+    /* margin-bottom: 1rem; */
+    /* Removed as per new card structure */
+    border: 1px solid #e5e7eb;
+}
+
+/* New styles for the rating pill */
+.rating-pill {
+    background-color: white;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    /* fully rounded */
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    /* text-sm */
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.rating-pill i {
+    color: #fcd34d;
+    /* yellow-400 */
+    margin-right: 0.25rem;
+    /* space-x-1 */
+}
+
+.favorite-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f3f4f6;
+    /* gray-100 */
+    color: #4b5563;
+    /* gray-700 */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-btn:hover {
+    background-color: #e5e7eb;
+    /* gray-200 */
+    transform: scale(1.05);
+}
+
+.favorite-btn i.fa-heart.fas {
+    color: #ef4444;
+    /* red-500 */
+}
+
+.service-card-initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 0.75rem;
+    /* Rounded corners for square */
+    background-color: #e5e7eb;
+    /* gray-200 */
+    color: #4b5563;
+    /* gray-700 */
+    font-size: 2rem;
+    /* large text for initials */
+    font-weight: bold;
+    border: 1px solid #d1d5db;
+}

@@ -1,0 +1,58 @@
+.input-field:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45);
+    border-color: transparent;
+}
+
+.heading-font {
+    font-family: "Dancing Script", cursive;
+}
+
+.nav-icon-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.nav-icon-bubble:hover {
+    background-color: rgba(255, 255, 255, 1);
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.review-card {
+    background-color: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+    /* light gray border */
+}
+
+.review-card-image {
+    border-radius: 50%;
+    /* circular image */
+    object-fit: cover;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.review-star-display i {
+    font-size: 1.25rem;
+    /* text-xl */
+    color: #fcd34d;
+    /* yellow-300 */
+}
+
+.review-star-display i.empty {
+    color: #d1d5db;
+    /* gray-300 */
+}

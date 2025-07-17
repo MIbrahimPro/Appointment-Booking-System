@@ -1,0 +1,131 @@
+html {
+    background-color: white;
+    font-family: Inter, Poppins, Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    background-color: #f0f0f0;
+    min-height: 100vh;
+    position: relative;
+    padding-top: 105px;
+}
+
+.dancing {
+    font-family: "Dancing Script", cursive;
+}
+
+.error {
+    color: red;
+    /* font-weight: bold; */
+    font-style: italic;
+    text-align: center;
+}
+
+.navbar {
+
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.nav-icon-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    /* Slightly larger for better tap targets */
+    height: 44px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    /* Slightly more opaque for icons */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    /* Subtle border for bubble effect */
+}
+
+.nav-icon-bubble:hover {
+    background-color: rgba(255, 255, 255, 1);
+    transform: translateY(-3px) scale(1.1);
+    /* More pronounced lift and scale */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+#navSearchForm {
+    position: relative;
+    display: flex;
+    flex-grow: 1;
+    max-width: 28rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    transition: all 0.3s ease-in-out;
+}
+
+#navSearchForm input[type="text"] {
+    width: 100%;
+    padding-left: 2.5rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid #d1d5db;
+    background: rgba(255, 255, 255, 0.6);
+    color: #1f2937;
+    font-size: 1rem;
+    outline: none;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+#navSearchForm input[type="text"]:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px #2563eb33;
+    background: #fff;
+}
+
+#navSearchForm i.fas.fa-search {
+    position: absolute;
+    left: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+    font-size: 1rem;
+}
+
+
+@media (max-width: 768px) {
+    #navSearchForm {
+        max-width: 100%;
+        /* Instead of margin-left:0 and margin-right:0, we add padding to the nav itself */
+        /* OR, you can add some horizontal padding here if you want space *inside* the form's container */
+        /* For example: */
+        padding-left: 0.5rem; /* Add some padding on left */
+        padding-right: 0.5rem; /* Add some padding on right */
+        /* Or, you could remove the margin-left/right from the main #navSearchForm rule and let nav's padding handle it */
+    }
+
+    /* Option 1: Add padding to the main nav container */
+    #mainNav {
+        padding-left: 1rem; /* Adjust as needed */
+        padding-right: 1rem; /* Adjust as needed */
+    }
+}
+
+/* Original #navSearchForm (outside media query) */
+#navSearchForm {
+    position: relative;
+    display: flex;
+    flex-grow: 1;
+    max-width: 28rem;
+    margin-left: 1rem; /* This is mx-4 in Tailwind, equivalent to 1rem */
+    margin-right: 1rem; /* This is mx-4 in Tailwind, equivalent to 1rem */
+    transition: all 0.3s ease-in-out;
+}
