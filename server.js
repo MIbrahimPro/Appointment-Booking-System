@@ -33,13 +33,11 @@ const app = express();
 
 app.use(requestLogger);
 app.use(cleaner);
-// app.use(morgan('dev'));
 
 // Connect to MongoDB
 connectDB();
 
 setInterval(() => {
-    // console.log("finalizer run")
     finalizePastAppointments().catch(err => console.error('Finalize job error:', err));
 }, 6 * 1000); // every 60 seconds
 
@@ -56,16 +54,21 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+
+
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
+
+
 // Session
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
 }));
+
 
 
 
@@ -89,8 +92,8 @@ app.use('/client/publicProfile', profileClient);
 
 
 // Redirect all other remaining to go to this login page
-app.get('/client', (req, res) => res.redirect('/client/user/login'));
 app.get('/', (req, res) => res.redirect('/client/user/login'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

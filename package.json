@@ -8,6 +8,7 @@
     "express": "^5.1.0",
     "express-ejs-layouts": "^2.5.1",
     "express-session": "^1.18.1",
+    "faker": "^6.6.6",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "method-override": "^3.0.0",

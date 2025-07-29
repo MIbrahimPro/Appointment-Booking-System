@@ -1,4 +1,5 @@
 // routes/api/services.js
+
 const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
@@ -49,6 +50,7 @@ router.get('/', async (req, res) => {
                 match._id = { $in: user.favorites };
             }
         } catch (e) {
+            console.error('Invalid token:', e);
             // invalid token or user not found → ignore favorites
         }
     }
@@ -91,6 +93,7 @@ router.get('/', async (req, res) => {
             // pagination
             { $skip: (Number(page) - 1) * Number(limit) },
             { $limit: Number(limit) },
+
             // project
             {
                 $project: {
@@ -459,8 +462,8 @@ router.post('/', authenticateRequired, async (req, res) => {
 });
 
 
-// PUT update /api/services/:id
 
+// PUT update /api/services/:id
 router.put('/:id', authenticateRequired, async (req, res) => {
     const { name, description, category_id, price,
         duration, location, experience, working_hours } = req.body;
@@ -519,6 +522,7 @@ router.put('/:id', authenticateRequired, async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 });
+
 
 // DELETE
 router.delete('/:id', authenticateRequired, async (req, res) => {

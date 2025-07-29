@@ -8,6 +8,7 @@ const { authenticateRequired, requireAdmin } = require('../../middleware/auth');
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '7d';
 
+
 // POST /api/user/signup
 router.post('/signup', async (req, res) => {
     const { name, email, password, phone } = req.body;
@@ -100,11 +101,13 @@ router.put('/', authenticateRequired, async (req, res) => {
     }
 });
 
+
 // GET /api/user/me
 router.get('/me', authenticateRequired, (req, res) => {
     const { password, ...user } = req.user.toObject();
     res.json({ user });
 });
+
 
 // PUT /api/user/change-password
 router.put('/change-password', authenticateRequired, async (req, res) => {
@@ -132,6 +135,8 @@ router.put('/change-password', authenticateRequired, async (req, res) => {
     }
 });
 
+
+
 // ADMIN ONLY
 
 // GET /api/user/all
@@ -139,6 +144,7 @@ router.get('/all', authenticateRequired, requireAdmin, async (req, res) => {
     const users = await User.find().select('-password');
     res.json({ users });
 });
+
 
 // PUT /api/user/role/:id
 router.put('/role/:id', authenticateRequired, requireAdmin, async (req, res) => {
@@ -166,5 +172,7 @@ router.delete('/:id', authenticateRequired, requireAdmin, async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
+
 
 module.exports = router;
